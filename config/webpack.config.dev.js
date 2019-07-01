@@ -24,19 +24,27 @@ module.exports = {
                 "displayName": true
               }
             ],
-            "macros"
+            "macros",
+            "@babel/plugin-proposal-class-properties"
           ]
         }
       }
     ]
   },
+  resolve: {
+    extensions: ['.js', '.ts', '.tsx', '.jsx']
+  },
   devServer: {
     contentBase: 'dist',
     port: 9000,
     historyApiFallback: true,
-    host: '0.0.0.0',
+    host: 'localhost',
     hot: true,
-    publicPath: '/'
+    publicPath: '/',
+    proxy: {
+      // '/api': 'http://app.recruit.test.lyml.me',
+      '/api': 'http://dummy.restapiexample.com/',
+    }
   },
   mode: 'development'
 }

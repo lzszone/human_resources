@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components/macro';
 
+import View from './view';
+
 const root = document.getElementById('root');
 
 const Container = styled.div`
@@ -16,6 +18,7 @@ class App extends Component {
     render() {
         return <Container>
             Hello World!
+            <View/>
         </Container>
     }
 }
