@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 
 const ins = axios.create({
-    baseURL: 'http://localhost:9000/',
+    // baseURL: 'http://127.0.0.1:3000/',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
     }
@@ -47,7 +47,6 @@ class CustomError extends Error {
 }
 
 ins.interceptors.response.use(function(response: AxiosResponse<CustomResponse<any>>) {
-    console.log(response.data)
     const {data: {code, message, data}} = response;
     if(code !== 1000) {
         const error = new CustomError(code, message);
@@ -260,9 +259,6 @@ const api = {
         signup(recruitId: number): Promise<void> {
             return ins.post('/api/recruit/signup', {recruitId})
         }
-    },
-    posts() {
-        return ins.get('/api/v1/employees')
     }
 };
 

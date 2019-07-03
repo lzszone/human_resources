@@ -36,14 +36,17 @@ module.exports = {
   },
   devServer: {
     contentBase: 'dist',
-    port: 9000,
+    port: 10001,
     historyApiFallback: true,
-    host: 'localhost',
+    host: '127.0.0.1',
     hot: true,
     publicPath: '/',
     proxy: {
-      // '/api': 'http://app.recruit.test.lyml.me',
-      '/api': 'http://dummy.restapiexample.com/',
+      '/api': {
+        target: 'http://app.recruit.test.lyml.me/',
+        changeOrigin: true,
+        secure: false
+      }
     }
   },
   mode: 'development'
