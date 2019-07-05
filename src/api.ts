@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, {AxiosResponse, AxiosRequestConfig, CancelTokenSource} from 'axios';
 
 const ins = axios.create({
     // baseURL: 'http://127.0.0.1:3000/',
@@ -9,6 +9,17 @@ const ins = axios.create({
 
 function setHeaders(obj: any) {
     Object.assign(ins.defaults.headers, obj)
+}
+function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig = {}) {
+    const source = axios.CancelToken.source();
+    options.cancelToken = source.token;
+    const promise = ins.post(url, postBody, options);
+    return {source, promise}
+}
+
+export interface ApiResult<T> {
+    source: CancelTokenSource,
+    promise: Promise<AxiosResponse<T>>
 }
 
 interface ListData<T> {
@@ -122,10 +133,10 @@ interface RecruitParam {
 
 const api = {
     customer: {
-        sendAuthorizationCode(mobile: string, ticket: string, randomStr: string): Promise<string> {
-            return ins.post('/api/customer/sendAuthorizationCode', {mobile, ticket, randomStr})
+        sendAuthorizationCode(mobile: string, ticket: string, randomStr: string): ApiResult<string> {
+            return axiosPost('/api/customer/sendAuthorizationCode', {mobile, ticket, randomStr}) as ApiResult<string>
         },
-        login(param: LoginParam): Promise<{
+        login(param: LoginParam): ApiResult<{
             token: string,//	鉴权Token，需要鉴权的业务需要带上该Token识别身份
             tokenExpireTime: string,//	Token过期时间戳
             loginType: LoginType,// 登录方式(1: 手机号码登录, 2: 微信登陆)
@@ -135,43 +146,43 @@ const api = {
             hasProfile: boolean,//	是否填写个人信息
             hasBindMobile: boolean,// 是否绑定手机
         }> {
-            return ins.post('/api/customer/login', param)
+            return axiosPost('/api/customer/login', param)
         },
-        bindDealer(mobile: string, code: string, requestId: string, dealerId: number): Promise<void> {
-            return ins.post('/api/customer/bindDealer', {mobile, code, requestId, dealerId})
+        bindDealer(mobile: string, code: string, requestId: string, dealerId: number): ApiResult<void> {
+            return axiosPost('/api/customer/bindDealer', {mobile, code, requestId, dealerId})
         },
-        submitProfile(p: SubmitProfileParam): Promise<void> {
-            return ins.post('/api/customer/submitProfile', p)
+        submitProfile(p: SubmitProfileParam): ApiResult<void> {
+            return axiosPost('/api/customer/submitProfile', p)
         },
-        getProfile(): Promise<CustomerProfile> {
-            return ins.post('/api/customer/getProfile')
+        getProfile(): ApiResult<CustomerProfile> {
+            return axiosPost('/api/customer/getProfile')
         },
-        setLoginPass(code: string, requestId: string, newPass: string): Promise<void> {
-            return ins.post('/api/customer/setLoginPass', {code, requestId, newPass})
+        setLoginPass(code: string, requestId: string, newPass: string): ApiResult<void> {
+            return axiosPost('/api/customer/setLoginPass', {code, requestId, newPass})
         },
         message: {
-            list(p: PageParam): Promise<ListData<{
+            list(p: PageParam): ApiResult<ListData<{
                 id: number,	//消息ID
                 title: string, //	消息标题
                 content: string,//	消息内容
                 read: boolean, //	是否已读
                 createTime: string//	创建时间(yyyy-MM-dd)
             }>> {
-                return ins.post('/api/customer/message/list', p)
+                return axiosPost('/api/customer/message/list', p)
             },
-            markAsRead(id: number): Promise<void> {
-                return ins.post('/api/customer/message/read', {id})
+            markAsRead(id: number): ApiResult<void> {
+                return axiosPost('/api/customer/message/read', {id})
             },
-            markAllAsRead(): Promise<void> {
-                return ins.post('/api/customer/message/allRead')
+            markAllAsRead(): ApiResult<void> {
+                return axiosPost('/api/customer/message/allRead')
             }
         }
     },
     complaint: {
-        submit(type: number, complaintTypeId: number, content: string, evidences: Array<string>): Promise<void> {
-            return ins.post('/api/complaint/submit', {type, complaintTypeId, content, evidences})
+        submit(type: number, complaintTypeId: number, content: string, evidences: Array<string>): ApiResult<void> {
+            return axiosPost('/api/complaint/submit', {type, complaintTypeId, content, evidences})
         },
-        list(p: PageParam): Promise<ListData<{
+        list(p: PageParam): ApiResult<ListData<{
             id: number, //	反馈ID
             type: number,//	反馈类型(1: 意见反馈, 2: 投诉)
             complaintType: string, //	投诉类型
@@ -181,29 +192,29 @@ const api = {
             result:	string, //	处理结果
             evidences: Array<string>//	截图列表
         }>> {
-            return ins.post('/api/complaint/list', p)
+            return axiosPost('/api/complaint/list', p)
         }
     },
     common: {
-        getDictData(dictName: string): Promise<{
+        getDictData(dictName: string): ApiResult<{
             id:	number,//	字典数据ID
             dictName: string,//	字典名称
             dataKey: string,//	字典数据名称
             dataValue: string, //	字典数据值
         }> {
-            return ins.post('/api/common/getDictData', {dictName})
+            return axiosPost('/api/common/getDictData', {dictName})
         },
-        uploadImage(file: File, serviceId: number): Promise<{
+        uploadImage(file: File, serviceId: number): ApiResult<{
             fileSuffix:	string,//	文件后缀
             savePath: string,//	存储路径，任何提供图片地址的接口需要传入该地址
             previewPath: string,//	预览地址，请不要将该地址传入任何需要传入图片地址的接口
             fileMd5: string,//	文件MD5值
         }> {
-            return ins.post('/api/common/uploadImage', {file, serviceId})
+            return axiosPost('/api/common/uploadImage', {file, serviceId})
         }
     },
     recruit: {
-        list(p: RecruitParam): Promise<ListData<{
+        list(p: RecruitParam): ApiResult<ListData<{
             id: number,//	招聘信息ID
             title: string,//	招聘标题
             minSalary: number,//	最低招聘工资
@@ -213,9 +224,9 @@ const api = {
             recruitNumber: number,//	已报名人数
             recruitLabels: Array<string>//	招聘标签列表，数组类型
         }>> {
-            return ins.post('/api/recruit/list', p)
+            return axiosPost('/api/recruit/list', p)
         },
-        getSearchParams(): Promise<Array<{
+        getSearchParams(): ApiResult<Array<{
             id: number,
             labelName: string,
             detailList: Array<{
@@ -223,9 +234,9 @@ const api = {
                 itemName: string
             }>
         }>> {
-            return ins.post('/api/recruit/getSearchParams')
+            return axiosPost('/api/recruit/getSearchParams')
         },
-        detail(id: number): Promise<{
+        detail(id: number): ApiResult<{
             id:	number,//	招聘信息ID
             title: string,//	招聘标题
             minSalary: number,//	最低招聘工资
@@ -254,10 +265,10 @@ const api = {
                 }>
             }>
         }> {
-            return ins.post('/api/recruit/detail', {id})
+            return axiosPost('/api/recruit/detail', {id})
         },
-        signup(recruitId: number): Promise<void> {
-            return ins.post('/api/recruit/signup', {recruitId})
+        signup(recruitId: number): ApiResult<void> {
+            return axiosPost('/api/recruit/signup', {recruitId})
         }
     }
 };

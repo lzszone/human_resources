@@ -1,14 +1,11 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components/macro';
+import HookedRouter from './components/hooked_router';
 
 import View from './view';
 
 const root = document.getElementById('root');
-
-const Container = styled.div`
-    color: red;
-`;
 
 class App extends Component {
     constructor(props) {
@@ -16,10 +13,10 @@ class App extends Component {
     }
     
     render() {
-        return <Container>
+        return <HookedRouter>
             Hello World!
             <View/>
-        </Container>
+        </HookedRouter>
     }
 }
 

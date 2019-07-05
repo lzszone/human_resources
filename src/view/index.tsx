@@ -1,10 +1,12 @@
 import React from 'react';
-import {BrowserRouter as Router, Route} from 'react-router-dom';
+
 import useApi from '../hooks/use_api';
+import useRouter from '../hooks/use_router';
 import api from '../api';
 
 export default function BaseView() {
     const {data, error, isLoading} = useApi(api.recruit.list, {});
+    const {location, path} = useRouter();
     if(isLoading) {
         return <div>Loading...</div>
     }
@@ -14,6 +16,12 @@ export default function BaseView() {
         </div>
     }
     return <div>
+        <div>
+            {path}
+        </div>
+        <div>
+            {JSON.stringify(location)}
+        </div>
         {data.list.map(r => <div key={r.id}>
             {r.title}
         </div>)}
