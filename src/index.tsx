@@ -1,23 +1,16 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
-import styled from 'styled-components/macro';
-import HookedRouter from './components/hooked_router';
+import {BrowserRouter} from 'react-router-dom';
 
 import View from './view';
 
 const root = document.getElementById('root');
 
-class App extends Component {
-    constructor(props) {
-        super(props)
-    }
-    
-    render() {
-        return <HookedRouter>
-            Hello World!
-            <View/>
-        </HookedRouter>
-    }
+function App() {
+    return <BrowserRouter>
+        Hello World!
+        <View/>
+    </BrowserRouter>
 }
 
 ReactDOM.render(<App/>, root);
