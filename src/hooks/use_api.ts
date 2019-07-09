@@ -26,6 +26,6 @@ export default function useApi<T, I extends Array<any>>(callFunction?: (...args:
                 return setState({isLoading: false, data: null, error: e})
             });
         return () => source.cancel('cancel...')
-    }, [])
+    }, []);
     return state
 }

@@ -124,7 +124,7 @@ interface PageParam {
     pageSize: number
 }
 
-interface RecruitParam {
+export interface RecruitParam {
     searchText?:	string,//	N	搜索内容
     areaId?:	number,//	N	地区ID
     areaType?: number,//	N	地区类型(1:省, 2:市, 3:区)
