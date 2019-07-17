@@ -1,7 +1,7 @@
 import React from 'react';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
-import Recruit from './recruit';
+import Recruit from './recruits';
 import useTitle from '../hooks/use_title';
 
 export default function Index() {

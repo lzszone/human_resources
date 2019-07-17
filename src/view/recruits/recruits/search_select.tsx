@@ -7,6 +7,7 @@ interface Props extends RecruitParam {redirect: (p: RecruitParam) => void};
 
 function SearchSelect({redirect, ...restProps}: Props) {
     const {isLoading, error, data} = useApi(api.recruit.getSearchParams);
+
     const [state, setState] = useState(restProps);
 
     if(isLoading) {
@@ -16,8 +17,6 @@ function SearchSelect({redirect, ...restProps}: Props) {
         return null
     }
     return <div>
-        {data.map(({id, labelName}) => <button onClick={setState({})}>
-            {labelName}
-        </button>)}
+        {data.map(({id, labelName}) => <div><div>{labelName}</div>{}</div>}
     </div>
 }
