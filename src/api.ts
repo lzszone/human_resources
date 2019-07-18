@@ -1,4 +1,5 @@
 import axios, {AxiosResponse, AxiosRequestConfig, CancelTokenSource} from 'axios';
+import qs from 'qs';
 
 const ins = axios.create({
     // baseURL: 'http://127.0.0.1:3000/',
@@ -16,6 +17,24 @@ function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig 
     const promise = ins.post(url, postBody, options);
     return {source, promise}
 }
+
+ins.interceptors.response.use(function(response: AxiosResponse<CustomResponse<any>>) {
+    const {data: {code, message, data}} = response;
+    if(code !== 1000) {
+        const error = new CustomError(code, message);
+        console.error(error)
+        return Promise.reject(error)
+    }
+    return data;
+}, function (error) {
+    console.error(error)
+    return Promise.reject(error);
+});
+
+ins.interceptors.request.use(function(req) {
+    req.data = qs.stringify(req.data);
+    return req
+})
 
 export interface ApiResult<T> {
     source: CancelTokenSource,
@@ -56,19 +75,6 @@ class CustomError extends Error {
         this.message = message;
     }
 }
-
-ins.interceptors.response.use(function(response: AxiosResponse<CustomResponse<any>>) {
-    const {data: {code, message, data}} = response;
-    if(code !== 1000) {
-        const error = new CustomError(code, message);
-        console.error(error)
-        return Promise.reject(error)
-    }
-    return data;
-}, function (error) {
-    console.error(error)
-    return Promise.reject(error);
-});
 
 enum LoginType {
     message = 1,

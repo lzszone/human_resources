@@ -8,7 +8,6 @@ const root = document.getElementById('root');
 
 function App() {
     return <BrowserRouter>
-        Hello World!
         <View/>
     </BrowserRouter>
 }

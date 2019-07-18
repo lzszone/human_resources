@@ -9,14 +9,20 @@ type UseApiResult<T> = {
     error: any,
 };
 
-export default function useApi<T, I extends Array<any>>(callFunction?: (...args: I) => ApiResult<T>, ...inputs: I): UseApiResult<T> {
+export default function useApi<T, I extends Array<any>>(callFunction: (...args: I) => ApiResult<T>, ...inputs: I): UseApiResult<T> {
     const [state, setState] = useState({
         isLoading: true,
         data: null,
         error: null
     });
     useEffect(function() {
+        console.log(111)
         const {source, promise}: ApiResult<T> = callFunction.apply(null, inputs);
+        setState({
+            isLoading: true,
+            data: null,
+            error: null
+        });
         promise
             .then((d: any) => setState({isLoading: false, data: d, error: null}))
             .catch(e => {
@@ -25,7 +31,7 @@ export default function useApi<T, I extends Array<any>>(callFunction?: (...args:
                 }
                 return setState({isLoading: false, data: null, error: e})
             });
-        return () => source.cancel('cancel...')
+        return () => {console.log('cancel');source.cancel('cancel...')}
     }, []);
     return state
 }
