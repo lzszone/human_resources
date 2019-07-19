@@ -16,8 +16,7 @@ export default function useApi<T, I extends Array<any>>(callFunction: (...args: 
         error: null
     });
     useEffect(function() {
-        console.log(111)
-        const {source, promise}: ApiResult<T> = callFunction.apply(null, inputs);
+    const {source, promise}: ApiResult<T> = callFunction.apply(null, inputs);
         setState({
             isLoading: true,
             data: null,

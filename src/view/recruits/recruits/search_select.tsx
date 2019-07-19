@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 
-import api, {RecruitParam} from '../../../api';
-import useApi from '../../../hooks/use_api';
+import {RecruitParam} from '../../../api';
 
 interface Props extends RecruitParam {redirect: (p: RecruitParam) => void, searchProps: any};
 
