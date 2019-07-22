@@ -1,7 +1,8 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useReducer} from "react";
 import axios from 'axios';
+import _ from 'lodash';
 
-import {ApiResult} from '../api';
+import {ApiResult} from '../service/api';
 
 type UseApiResult<T> = {
     data?: T,
@@ -9,14 +10,27 @@ type UseApiResult<T> = {
     error: any,
 };
 
+function reducer<T>(state: T, action: T) {
+    if(_.isEqual(state, action)) {
+        return state
+    }
+    return action
+}
+
 export default function useApi<T, I extends Array<any>>(callFunction: (...args: I) => ApiResult<T>, ...inputs: I): UseApiResult<T> {
+    const [args, dispatch] = useReducer(reducer, inputs);
     const [state, setState] = useState({
         isLoading: true,
         data: null,
         error: null
     });
+
     useEffect(function() {
-    const {source, promise}: ApiResult<T> = callFunction.apply(null, inputs);
+        dispatch(inputs);
+    }, [inputs]);
+
+    useEffect(function() {
+        const {source, promise}: ApiResult<T> = callFunction.apply(null, args);
         setState({
             isLoading: true,
             data: null,
@@ -31,6 +45,7 @@ export default function useApi<T, I extends Array<any>>(callFunction: (...args: 
                 return setState({isLoading: false, data: null, error: e})
             });
         return () => {console.log('cancel');source.cancel('cancel...')}
-    }, []);
+    }, [args]);
+    
     return state
 }

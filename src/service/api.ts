@@ -102,9 +102,9 @@ interface WechatLogin {
     loginType: LoginType.wechat
 }
 
-type LoginParam = MessageLogin | PasswordLogin | WechatLogin;
+export type LoginParam = MessageLogin | PasswordLogin | WechatLogin;
 
-interface SubmitProfileParam {
+export interface SubmitProfileParam {
     realName: string,//	真实姓名
     sex:1 | 2,//	性别：1男， 2 女
     birthDate: string,//	Y	出生日期，按照: yyyy-MM-dd格式
@@ -118,14 +118,14 @@ interface SubmitProfileParam {
     perilRelaId: number//	Y	紧急联系人关系ID，参照字典表读取，dictName为：perilRela
 }
 
-interface CustomerProfile extends SubmitProfileParam {
+export interface CustomerProfile extends SubmitProfileParam {
     mobile: string,
     nation: string,
     education: string,
     perilRela: string
 }
 
-interface PageParam {
+export interface PageParam {
     pageNum: number, 
     pageSize: number
 }

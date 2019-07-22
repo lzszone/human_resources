@@ -2,12 +2,13 @@ import React from 'react';
 import {RouteComponentProps} from 'react-router';
 
 import useApi from '../../hooks/use_api';
-import api from '../../api';
+import api from '../../service/api';
+import Loading from '../../components/loading';
 
 export default function Detail(props: RouteComponentProps<{id: string}>) {
     const {error, data, isLoading} = useApi(api.recruit.detail, Number(props.match.params.id));
     if(isLoading) {
-        return <div>loading...</div>
+        return <Loading/>
     }
     if(error) {
         return <div>{JSON.stringify(error)}</div>

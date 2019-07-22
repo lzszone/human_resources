@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 
-import {RecruitParam} from '../../../api';
+import {RecruitParam} from '../../../service/api';
+import Loading from '../../../components/loading';
 
-interface Props extends RecruitParam {redirect: (p: RecruitParam) => void, searchProps: any};
+interface Props extends RecruitParam {goto: (p: RecruitParam) => void, searchProps: any};
 
-export default function SearchSelect({redirect, searchProps, ...restProps}: Props) {
+export default function SearchSelect({goto, searchProps, ...restProps}: Props) {
     const {isLoading, error, data} = searchProps;
     restProps.recruitLabelItemIds? undefined: restProps.recruitLabelItemIds = [];
     const [state, setState] = useState(restProps);
@@ -21,7 +22,7 @@ export default function SearchSelect({redirect, searchProps, ...restProps}: Prop
     }
 
     if(isLoading) {
-        return <div>Loading...</div>
+        return <Loading/>
     }
     if(error) {
         return null
@@ -40,7 +41,8 @@ export default function SearchSelect({redirect, searchProps, ...restProps}: Prop
             </div>
         )}
         <div>
-            <button onClick={() => redirect(state)}>确定</button>
+            <button onClick={() => goto({})}>重置</button>
+            <button onClick={() => goto(state)}>确定</button>
         </div>
     </div>
 }
