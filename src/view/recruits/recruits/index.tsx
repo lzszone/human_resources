@@ -6,6 +6,7 @@ import useApi from '../../../hooks/use_api';
 import useTitle from '../../../hooks/use_title';
 import api, {RecruitParam} from '../../../service/api';
 import SearchSelect from './search_select';
+import FetchingError from '../../../components/fetching_error';
 
 export default function Recruit(props: RouteComponentProps) {
     const {location, match, history} = props;
@@ -20,9 +21,7 @@ export default function Recruit(props: RouteComponentProps) {
         return <div>Loading...</div>
     }
     if(error) {
-        return <div style={{color: 'red'}}>
-            {JSON.stringify(error)}
-        </div>
+        return <FetchingError error={error} />
     }
     return <div>
         <SearchSelect {...searchState} goto={goto} searchProps={searchProps} />
