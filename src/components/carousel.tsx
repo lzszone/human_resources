@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import styled from 'styled-components/macro';
 import {Link as L} from 'react-router-dom';
 import {throttle} from 'lodash';
-import console = require('console');
 
 enum LinkType {
     web = 0,
@@ -49,7 +48,7 @@ export default function Carousel(props: {
     const total = props.data.length;
     const marginLeft = `-${currentIndex * 100}%`;
     let lastScreenX;
-    function handleMouseMove(e: MouseEvent) {
+    function handleMouseMove(e: React.MouseEvent) {
         e.preventDefault();
         if(!lastScreenX) {
             lastScreenX = e.screenX
@@ -57,12 +56,14 @@ export default function Carousel(props: {
         throttle(function(e: MouseEvent) {
             if(e.screenX - lastScreenX > 10) {
                 setCurrentIndex((currentIndex + 1) % total)
-            } else if(e.screenX - las)
+            } else if(e.screenX - lastScreenX < -10) {
+                setCurrentIndex((currentIndex - 1) % total)
+            }
         }, 16);
     }
 
     return <Container>
-        <Inner style={{marginLeft}} onMouseMove={e => } >
+        <Inner style={{marginLeft}} onMouseMove={handleMouseMove} >
             {props.data.map((v, i) => <Banner {...v} key={i} />)}
         </Inner>
     </Container>
