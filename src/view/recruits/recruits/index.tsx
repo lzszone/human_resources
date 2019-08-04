@@ -7,6 +7,7 @@ import useTitle from '../../../hooks/use_title';
 import api, {RecruitParam} from '../../../service/api';
 import SearchSelect from './search_select';
 import FetchingError from '../../../components/fetching_error';
+import Loading from '../../../components/loading';
 
 export default function Recruit(props: RouteComponentProps) {
     const {location, match, history} = props;
@@ -18,7 +19,7 @@ export default function Recruit(props: RouteComponentProps) {
         history.push(`${location.pathname}?${qs.stringify(args)}`)
     }
     if(isLoading) {
-        return <div>Loading...</div>
+        return <Loading/>
     }
     if(error) {
         return <FetchingError error={error} />

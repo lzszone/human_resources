@@ -1,6 +1,5 @@
 import axios, {AxiosResponse, AxiosRequestConfig, CancelTokenSource} from 'axios';
 import qs from 'qs';
-import { number } from 'prop-types';
 
 const ins = axios.create({
     // baseURL: 'http://127.0.0.1:3000/',
@@ -48,6 +47,8 @@ export enum JobSignupHistoryStatusEnum {
     passed = 2,
     rejected = 3    
 };
+
+export type ListQueryParam<T> = {pageSize: number, pageNum: number} & T;
 
 interface ListData<T> {
     pageNum: number, // 当前页
@@ -149,7 +150,7 @@ export interface JobSignupHistory {
     id: number, //	报名记录ID
     recruitId: number, //	招聘记录ID
     recruitTitle: string, //	招聘标题
-    status: number,	// 报名状态(1: 审核中, 2: 未通过, 3: 已通过)
+    status: JobSignupHistoryStatusEnum,	// 报名状态(1: 审核中, 2: 未通过, 3: 已通过)
     rejectContent: string, //	驳回理由
     createTime: string // 创建时间(yyyy-MM-dd HH:mm:ss)
 };

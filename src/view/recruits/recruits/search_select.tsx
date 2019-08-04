@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 
 import {RecruitParam} from '../../../service/api';
 import Loading from '../../../components/loading';
+import FetchingError from '../../../components/fetching_error';
 
 interface Props extends RecruitParam {goto: (p: RecruitParam) => void, searchProps: any};
 
@@ -25,7 +26,7 @@ export default function SearchSelect({goto, searchProps, ...restProps}: Props) {
         return <Loading/>
     }
     if(error) {
-        return null
+        return <FetchingError error={error} />
     }
     return <div>
         {data.map(({id, labelName, detailList}) => 

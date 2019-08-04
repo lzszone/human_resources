@@ -43,7 +43,7 @@ module.exports = {
     publicPath: '/',
     proxy: {
       '/api': {
-        target: 'http://app.recruit.test.lyml.me/',
+        target: 'http://api.520work.cn/',
         changeOrigin: true,
         secure: false
       }
