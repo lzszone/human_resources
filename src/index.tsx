@@ -1,6 +1,7 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import {BrowserRouter} from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
+import 'normalize.css';
 
 import View from './view';
 
@@ -8,8 +9,8 @@ const root = document.getElementById('root');
 
 function App() {
     return <BrowserRouter>
-        <View/>
+        <View />
     </BrowserRouter>
 }
 
-ReactDOM.render(<App/>, root);
+ReactDOM.render(<App />, root);

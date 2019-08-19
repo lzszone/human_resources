@@ -1,4 +1,4 @@
-import React, {PropsWithChildren} from 'react';
+import React, { PropsWithChildren } from 'react';
 
 export default function ModifiableRow(props: PropsWithChildren<{
     modifiable: boolean,
@@ -6,15 +6,15 @@ export default function ModifiableRow(props: PropsWithChildren<{
     children: [JSX.Element, JSX.Element]
 }>) {
     const {
-        modifiable, 
-        children: [modify, display],
+        modifiable,
+        children: [display, modify],
         label
     } = props;
-    if(modifiable) {
+    if (modifiable) {
         return <div>
-        <label>{label}</label>
-        {modify}
-    </div>
+            <label>{label}</label>
+            {modify}
+        </div>
     }
     return <div>
         <label>{label}</label>

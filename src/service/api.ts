@@ -1,28 +1,30 @@
-import axios, {AxiosResponse, AxiosRequestConfig, CancelTokenSource} from 'axios';
+import axios, { AxiosResponse, AxiosRequestConfig, CancelTokenSource } from 'axios';
 import qs from 'qs';
 
 const ins = axios.create({
     // baseURL: 'http://127.0.0.1:3000/',
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Secret-Key': 'eyJraWQiOiIxMDAwMDAwMyIsInR5cCI6IkpXVCIsImFsZyI6IkhTMjU2In0.eyJsb2dpblR5cGUiOjIsImlzcyI6IjEzMDI4MTIwNzk3IiwiZXhwIjoxNTcxNjYwMTM5LCJpYXQiOjE1NjYxMzA1Mzl9.EnPXb3lRK4wDrHzGaO5yla5UjgNTnN4bXnu9FBK5SA0'
     }
 });
 
 function setHeaders(obj: any) {
     Object.assign(ins.defaults.headers, obj)
 }
+
 function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig = {}) {
     const source = axios.CancelToken.source();
     options.cancelToken = source.token;
     const promise = ins.post(url, postBody, options);
-    return {source, promise}
+    return { source, promise }
 }
 
-ins.interceptors.response.use(function(response: AxiosResponse<CustomResponse<any>>) {
-    const {data: {code, message, data}} = response;
-    if(code !== 1000) {
+ins.interceptors.response.use(function (response: AxiosResponse<CustomResponse<any>>) {
+    const { data: { code, message, data } } = response;
+    if (code !== 1000) {
         const error = new CustomError(code, message);
-        console.error(error)
+        console.error(`请求错误, 错误码: ${code}, 错误信息: ${message}`);
         return Promise.reject(error)
     }
     return data;
@@ -31,7 +33,7 @@ ins.interceptors.response.use(function(response: AxiosResponse<CustomResponse<an
     return Promise.reject(error);
 });
 
-ins.interceptors.request.use(function(req) {
+ins.interceptors.request.use(function (req) {
     req.data = qs.stringify(req.data);
     return req
 });
@@ -45,10 +47,10 @@ export enum JobSignupHistoryStatusEnum {
     all = 0,
     processing = 1,
     passed = 2,
-    rejected = 3    
+    rejected = 3
 };
 
-export type ListQueryParam<T> = {pageSize: number, pageNum: number} & T;
+export type ListQueryParam<T> = { pageSize: number, pageNum: number } & T;
 
 interface ListData<T> {
     pageNum: number, // 当前页
@@ -79,9 +81,8 @@ class CustomError extends Error {
     public code: number;
     public message: string;
     constructor(code: number, message: string) {
-        super();
+        super(message);
         this.code = code;
-        this.message = message;
     }
 };
 
@@ -115,15 +116,15 @@ export type LoginParam = MessageLogin | PasswordLogin | WechatLogin;
 
 export interface SubmitProfileParam {
     realName: string,//	真实姓名
-    sex:1 | 2,//	性别：1男， 2 女
+    sex: 1 | 2,//	性别：1男， 2 女
     birthDate: string,//	Y	出生日期，按照: yyyy-MM-dd格式
     nationId: number, //	Y	民族ID，参照字典表读取,dictName为: nation
     nativePlace: string	//Y	籍贯
     educationId: number,//	Y	学历ID，参照字典表读取, dictName为: education
-    skills:	Array<string>, //	Y	个人技能列表，数组类型，string传入
-    photos:	Array<string>,//	Y	照片列表，数组类型，string传入
+    skills: Array<string>, //	Y	个人技能列表，数组类型，string传入
+    photos: Array<string>,//	Y	照片列表，数组类型，string传入
     perilName: string,	//Y	紧急联系人姓名
-    perilPhone:	string,//	Y	紧急联系人电话
+    perilPhone: string,//	Y	紧急联系人电话
     perilRelaId: number//	Y	紧急联系人关系ID，参照字典表读取，dictName为：perilRela
 };
 
@@ -135,13 +136,13 @@ export interface CustomerProfile extends SubmitProfileParam {
 };
 
 export interface PageParam {
-    pageNum: number, 
+    pageNum: number,
     pageSize: number
 };
 
 export interface RecruitParam {
-    searchText?:	string,//	N	搜索内容
-    areaId?:	number,//	N	地区ID
+    searchText?: string,//	N	搜索内容
+    areaId?: number,//	N	地区ID
     areaType?: number,//	N	地区类型(1:省, 2:市, 3:区)
     recruitLabelItemIds?: Array<number>//	N	招聘标签ID数组，查看获取搜索参数信息接口
 };
@@ -160,7 +161,7 @@ export interface WXLoginResult {
     tokenExpireTime: number, //	Token过期时间戳
     loginType: number, //	登陆方式(1: 手机号码登录, 2: 微信登陆, 3: 微信公众号登陆)
     customerName: string, //	登陆用户名
-    customerAvatar:	string, //	用户头像
+    customerAvatar: string, //	用户头像
     customerNick: string, //	用户昵称
     hasProfile: boolean, //	是否填写个人信息
     hasBindMobile: boolean//	是否绑定手机
@@ -185,13 +186,13 @@ export interface StationUser {
 
 export interface WageCardInfo {
     bankName: string, //	开户行名称
-    bankCard:string, //	银行卡号
+    bankCard: string, //	银行卡号
     cardholder: string,//	持卡人姓名
 };
 
 enum BorrowStatus {
     rejected = 0,
-    passed = 1, 
+    passed = 1,
     processing = 2
 };
 
@@ -307,7 +308,7 @@ export interface MyBalanceChangeHistory {
 const api = {
     customer: {
         sendAuthorizationCode(mobile: string, ticket: string, randomStr: string): ApiResult<string> {
-            return axiosPost('/api/customer/sendAuthorizationCode', {mobile, ticket, randomStr}) as ApiResult<string>
+            return axiosPost('/api/customer/sendAuthorizationCode', { mobile, ticket, randomStr }) as ApiResult<string>
         },
         login(param: LoginParam): ApiResult<{
             token: string,//	鉴权Token，需要鉴权的业务需要带上该Token识别身份
@@ -322,7 +323,7 @@ const api = {
             return axiosPost('/api/customer/login', param)
         },
         bindDealer(mobile: string, code: string, requestId: string, dealerId: number): ApiResult<void> {
-            return axiosPost('/api/customer/bindDealer', {mobile, code, requestId, dealerId})
+            return axiosPost('/api/customer/bindDealer', { mobile, code, requestId, dealerId })
         },
         submitProfile(p: SubmitProfileParam): ApiResult<void> {
             return axiosPost('/api/customer/submitProfile', p)
@@ -331,7 +332,7 @@ const api = {
             return axiosPost('/api/customer/getProfile')
         },
         setLoginPass(code: string, requestId: string, newPass: string): ApiResult<void> {
-            return axiosPost('/api/customer/setLoginPass', {code, requestId, newPass})
+            return axiosPost('/api/customer/setLoginPass', { code, requestId, newPass })
         },
         message: {
             list(p: PageParam): ApiResult<ListData<{
@@ -344,7 +345,7 @@ const api = {
                 return axiosPost('/api/customer/message/list', p)
             },
             markAsRead(id: number): ApiResult<void> {
-                return axiosPost('/api/customer/message/read', {id})
+                return axiosPost('/api/customer/message/read', { id })
             },
             markAllAsRead(): ApiResult<void> {
                 return axiosPost('/api/customer/message/allRead')
@@ -352,11 +353,11 @@ const api = {
         },
         jobSignupHistory: {
             list(pageSize: number = 20, pageNum: number = 1, status: JobSignupHistoryStatusEnum = JobSignupHistoryStatusEnum.all): ApiResult<ListData<JobSignupHistory>> {
-                return axiosPost('/api/customer/jobSignupHistory/list', {pageSize, pageNum, status})
+                return axiosPost('/api/customer/jobSignupHistory/list', { pageSize, pageNum, status })
             }
         },
         uploadCustomerInfo(customerNick: string, customerAvatar: string): ApiResult<void> {
-            return axiosPost('/api/customer/uploadCustomerInfo', {customerNick, customerAvatar})
+            return axiosPost('/api/customer/uploadCustomerInfo', { customerNick, customerAvatar })
         },
         getCustomerInfo(): ApiResult<CustomerInfo> {
             return axiosPost('/api/customer/getCustomerInfo')
@@ -368,7 +369,7 @@ const api = {
             return axiosPost('/api/customer/getMyWageCardInfo')
         },
         getMyWork(monthTimeId: number): ApiResult<Work> {
-            return axiosPost('/api/customer/getMyWork', {monthTimeId})
+            return axiosPost('/api/customer/getMyWork', { monthTimeId })
         }
 
     },
@@ -379,35 +380,35 @@ const api = {
     },
     borrow: {
         submitBorrow(borrowAmount: number, reason: string): ApiResult<void> {
-            return axiosPost('/api/borrow/submitBorrow', {borrowAmount, reason})
+            return axiosPost('/api/borrow/submitBorrow', { borrowAmount, reason })
         },
         list(pageSize: number = 20, pageNum: number = 1): ApiResult<ListData<Borrow>> {
-            return axiosPost('/api/borrow/list', {pageNum, pageSize})
+            return axiosPost('/api/borrow/list', { pageNum, pageSize })
         }
     },
     monthTime: {
         list(pageNum: number = 1, pageSize: number = 20): ApiResult<ListData<WorkTime>> {
-            return axiosPost('/api/monthTime/list', {pageNum, pageSize})
+            return axiosPost('/api/monthTime/list', { pageNum, pageSize })
         },
         detail(id: number): ApiResult<WorkDetail> {
-            return axiosPost('/api/monthTime/detail', {id})
+            return axiosPost('/api/monthTime/detail', { id })
         },
         confirmMonthTime(id: number): ApiResult<void> {
-            return axiosPost('/api/monthTime/confirmMonthTime', {id})
+            return axiosPost('/api/monthTime/confirmMonthTime', { id })
         }
     },
     complaint: {
         submit(type: number, complaintTypeId: number, content: string, evidences: Array<string>): ApiResult<void> {
-            return axiosPost('/api/complaint/submit', {type, complaintTypeId, content, evidences})
+            return axiosPost('/api/complaint/submit', { type, complaintTypeId, content, evidences })
         },
         list(p: PageParam): ApiResult<ListData<{
             id: number, //	反馈ID
             type: number,//	反馈类型(1: 意见反馈, 2: 投诉)
             complaintType: string, //	投诉类型
             content: string, //	反馈内容
-            status:	number,//	状态(0: 未处理, 1: 已处理)
-            createTime:	string, //	创建时间(yyyy-MM-dd HH:mm:ss)
-            result:	string, //	处理结果
+            status: number,//	状态(0: 未处理, 1: 已处理)
+            createTime: string, //	创建时间(yyyy-MM-dd HH:mm:ss)
+            result: string, //	处理结果
             evidences: Array<string>//	截图列表
         }>> {
             return axiosPost('/api/complaint/list', p)
@@ -415,28 +416,28 @@ const api = {
     },
     common: {
         getDictData(dictName: string): ApiResult<{
-            id:	number,//	字典数据ID
+            id: number,//	字典数据ID
             dictName: string,//	字典名称
             dataKey: string,//	字典数据名称
             dataValue: string, //	字典数据值
         }> {
-            return axiosPost('/api/common/getDictData', {dictName})
+            return axiosPost('/api/common/getDictData', { dictName })
         },
         uploadImage(file: File, serviceId: number): ApiResult<{
-            fileSuffix:	string,//	文件后缀
+            fileSuffix: string,//	文件后缀
             savePath: string,//	存储路径，任何提供图片地址的接口需要传入该地址
             previewPath: string,//	预览地址，请不要将该地址传入任何需要传入图片地址的接口
             fileMd5: string,//	文件MD5值
         }> {
-            return axiosPost('/api/common/uploadImage', {file, serviceId})
+            return axiosPost('/api/common/uploadImage', { file, serviceId })
         }
     },
     area: {
         queryAllArea(level: AreaLevel): ApiResult<ListData<Area>> {
-            return axiosPost('/api/area/queryAllArea', {level})
+            return axiosPost('/api/area/queryAllArea', { level })
         },
         queryAreaByParent(parentId: number): ApiResult<ListData<Area>> {
-            return axiosPost('/api/area/queryAreaByParent', {parentId})
+            return axiosPost('/api/area/queryAreaByParent', { parentId })
         }
     },
     recruit: {
@@ -445,8 +446,8 @@ const api = {
             title: string,//	招聘标题
             minSalary: number,//	最低招聘工资
             maxSalary: number,//	最高招聘工资
-            companyAddress:	string,//	公司地址
-            estimateNumber:	number,//	预计招聘人数
+            companyAddress: string,//	公司地址
+            estimateNumber: number,//	预计招聘人数
             recruitNumber: number,//	已报名人数
             recruitLabels: Array<string>//	招聘标签列表，数组类型
         }>> {
@@ -463,7 +464,7 @@ const api = {
             return axiosPost('/api/recruit/getSearchParams')
         },
         detail(id: number): ApiResult<{
-            id:	number,//	招聘信息ID
+            id: number,//	招聘信息ID
             title: string,//	招聘标题
             minSalary: number,//	最低招聘工资
             maxSalary: number,//	最高招聘工资
@@ -491,18 +492,18 @@ const api = {
                 }>
             }>
         }> {
-            return axiosPost('/api/recruit/detail', {id})
+            return axiosPost('/api/recruit/detail', { id })
         },
         signup(recruitId: number): ApiResult<void> {
-            return axiosPost('/api/recruit/signup', {recruitId})
+            return axiosPost('/api/recruit/signup', { recruitId })
         }
     },
     wx: {
-        getWxConfigInfo(wxKey: string): ApiResult<{appId: string, state: string}> {
-            return axiosPost('/api/wx/getWxConfigInfo', {wxKey})
-        }, 
+        getWxConfigInfo(wxKey: string): ApiResult<{ appId: string, state: string }> {
+            return axiosPost('/api/wx/getWxConfigInfo', { wxKey })
+        },
         auth(code: string, state: string, wxKey: string): ApiResult<WXLoginResult> {
-            return axiosPost('/api/wx/auth', {code, state, wxKey})
+            return axiosPost('/api/wx/auth', { code, state, wxKey })
         }
     },
     recommend: {
@@ -510,13 +511,13 @@ const api = {
             return axiosPost('/api/recommend/getMyCustomerInfo')
         },
         submitMyBankInfo(bankId: number, bankCard: string, cardholder: string): ApiResult<void> {
-            return axiosPost('/api/recommend/submitMyBankInfo', {bankId, bankCard, cardholder})
+            return axiosPost('/api/recommend/submitMyBankInfo', { bankId, bankCard, cardholder })
         },
         getMyBalanceChangeHistory(pageNum: number = 1, pageSize: number = 20): ApiResult<ListData<MyBalanceChangeHistory>> {
-            return axiosPost('/api/recommend/getMyBalanceChangeHistory', {pageNum, pageSize})
+            return axiosPost('/api/recommend/getMyBalanceChangeHistory', { pageNum, pageSize })
         },
         withdrawal(amount: number): ApiResult<void> {
-            return axiosPost('/api/recommend/withdrawal', {amount})
+            return axiosPost('/api/recommend/withdrawal', { amount })
         }
     }
 };

@@ -1,4 +1,4 @@
-import {useState, Dispatch, SetStateAction} from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 
 type UseParamResult<T> = {
     [key in keyof T]: string | number
@@ -12,7 +12,7 @@ export default function useParam<T extends StringDict>(params: T): [UseParamResu
     const rst = {};
     Object.entries(params).forEach(([key, value]) => {
         const parsed = parseInt(value);
-        if(parsed === NaN) {
+        if (parsed === NaN) {
             return rst[key] = value
         }
         return rst[key] = parsed

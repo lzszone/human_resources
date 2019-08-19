@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components/macro';
-import {Link as L} from 'react-router-dom';
-import {throttle} from 'lodash';
+import { Link as L } from 'react-router-dom';
+import { throttle } from 'lodash';
 
 enum LinkType {
     web = 0,
@@ -33,8 +33,8 @@ const Inner = styled.div`
 `;
 
 function Banner(props: BannerProps) {
-    const url = props.type === LinkType.web? 
-        props.url:
+    const url = props.type === LinkType.web ?
+        props.url :
         `/recruits/${props.recuitId}`;
     return <Link to={url} >
         <img src={props.back} alt={props.title} />
@@ -50,20 +50,20 @@ export default function Carousel(props: {
     let lastScreenX;
     function handleMouseMove(e: React.MouseEvent) {
         e.preventDefault();
-        if(!lastScreenX) {
+        if (!lastScreenX) {
             lastScreenX = e.screenX
         }
-        throttle(function(e: MouseEvent) {
-            if(e.screenX - lastScreenX > 10) {
+        throttle(function (e: MouseEvent) {
+            if (e.screenX - lastScreenX > 10) {
                 setCurrentIndex((currentIndex + 1) % total)
-            } else if(e.screenX - lastScreenX < -10) {
+            } else if (e.screenX - lastScreenX < -10) {
                 setCurrentIndex((currentIndex - 1) % total)
             }
         }, 16);
     }
 
     return <Container>
-        <Inner style={{marginLeft}} onMouseMove={handleMouseMove} >
+        <Inner style={{ marginLeft }} onMouseMove={handleMouseMove} >
             {props.data.map((v, i) => <Banner {...v} key={i} />)}
         </Inner>
     </Container>

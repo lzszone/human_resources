@@ -8,28 +8,33 @@ module.exports = {
     publicPath: '/'
   },
   module: {
-    rules: [
-      {
-        test: /\.(j|t)sx?/,
-        loader: 'babel-loader',
-        options: {
-          presets: [
-            '@babel/preset-typescript',
-            '@babel/preset-react',
-            '@babel/preset-env'
+    rules: [{
+      test: /\.(j|t)sx?/,
+      loader: 'babel-loader',
+      options: {
+        presets: [
+          '@babel/preset-typescript',
+          '@babel/preset-react',
+          '@babel/preset-env'
+        ],
+        plugins: [
+          [
+            "styled-components", {
+              "displayName": true
+            }
           ],
-          plugins: [
-            [
-              "styled-components", {
-                "displayName": true
-              }
-            ],
-            "macros",
-            "@babel/plugin-proposal-class-properties"
-          ]
-        }
+          "macros",
+          "@babel/plugin-proposal-class-properties"
+        ]
       }
-    ]
+    },{
+      test: /\.css$/,
+      use: [{
+        loader: 'style-loader'
+      }, {
+        loader: 'css-loader'
+      }]
+    }]
   },
   resolve: {
     extensions: ['.js', '.ts', '.tsx', '.jsx']
