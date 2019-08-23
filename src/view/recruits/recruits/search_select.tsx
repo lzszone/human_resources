@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
 import { RecruitParam } from '../../../service/api';
-import Loading from '../../../components/loading';
-import FetchingError from '../../../components/fetching_error';
+import renderPage from '../../../components/render_page';
 
 interface Props extends RecruitParam { goto: (p: RecruitParam) => void, searchProps: any };
 
@@ -22,13 +21,7 @@ export default function SearchSelect({ goto, searchProps, ...restProps }: Props)
         return result
     }
 
-    if (isLoading) {
-        return <Loading />
-    }
-    if (error) {
-        return <FetchingError error={error} />
-    }
-    return <div>
+    return renderPage(error, isLoading, data, (data) => <div>
         {data.map(({ id, labelName, detailList }) =>
             <div key={id}>
                 <div>{labelName}</div>
@@ -45,5 +38,5 @@ export default function SearchSelect({ goto, searchProps, ...restProps }: Props)
             <button onClick={() => goto({})}>重置</button>
             <button onClick={() => goto(state)}>确定</button>
         </div>
-    </div>
+    </div>)
 }

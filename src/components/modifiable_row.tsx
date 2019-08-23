@@ -1,4 +1,8 @@
 import React, { PropsWithChildren } from 'react';
+import styled from 'styled-components/macro';
+
+import Row from './row';
+import RowHeader from './row_header';
 
 export default function ModifiableRow(props: PropsWithChildren<{
     modifiable: boolean,
@@ -11,13 +15,13 @@ export default function ModifiableRow(props: PropsWithChildren<{
         label
     } = props;
     if (modifiable) {
-        return <div>
-            <label>{label}</label>
+        return <Row>
+            <RowHeader>{label}</RowHeader>
             {modify}
-        </div>
+        </Row>
     }
-    return <div>
-        <label>{label}</label>
+    return <Row>
+        <RowHeader>{label}</RowHeader>
         {display}
-    </div>
+    </Row>
 }

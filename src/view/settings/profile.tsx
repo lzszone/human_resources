@@ -4,12 +4,13 @@ import styled from 'styled-components/macro';
 import useTitle from '../../hooks/use_title';
 import useApi from '../../hooks/use_api';
 import api from '../../service/api';
-import Loading from '../../components/loading';
-import FetchingError from '../../components/fetching_error';
+import Input from '../../components/input';
 import Container from '../../components/container';
 import Section from '../../components/section';
 import ModifiableRow from '../../components/modifiable_row';
-import Button from '../../components/button';
+import {FullWidthButton} from '../../components/buttons';
+import Separator from '../../components/separator';
+import renderPage from '../../components/render_page';
 
 const Text = styled.span`
     font-weight: bold;
@@ -28,87 +29,80 @@ function Info() {
     </Warning>
 }
 
-const Btn = styled(Button)`
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    height: ${48 / 14}rem;
-`;
-
 export default function Profile() {
     useTitle('我的资料');
     const { data, error, isLoading } = useApi(api.customer.getProfile);
-    const [modifiable, setModifiable] = useState(false);
-
-    if (isLoading) {
-        return <Loading></Loading>
-    }
-    if (error) {
-        return <FetchingError error={error} ></FetchingError>
-    }
+    const [ modifiable, setModifiable ] = useState(false);
     
-    const sex = data.sex === 1? '男': '女';
-    return <Container>
+    return renderPage(error, isLoading, data, data => <Container>
         <Section title='基础资料' >
             <ModifiableRow modifiable={modifiable} label='姓名' >
                 <Text>{data.realName}</Text>
-                <input type="text" value={data.realName} />
+                <Input type="text" value={data.realName} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='联系电话' >
                 <Text>{data.mobile}</Text>
-                <input type="text" value={data.mobile} />
+                <Input type="text" value={data.mobile} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='性别' >
-                <Text>{sex}</Text>
-                <input type="text" value={sex} />
+                <Text>{data.sex === 1? '男': '女'}</Text>
+                <Input type="text" value={data.sex === 1? '男': '女'} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='出生日期' >
                 <Text>{data.birthDate}</Text>
-                <input type="text" value={data.birthDate} />
+                <Input type="text" value={data.birthDate} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='民族' >
                 <Text>{data.perilRela}</Text>
-                <input type="text" value={data.perilRela} />
+                <Input type="text" value={data.perilRela} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='籍贯' >
                 <Text>{data.nativePlace}</Text>
-                <input type="text" value={data.nativePlace} />
+                <Input type="text" value={data.nativePlace} />
             </ModifiableRow>
         </Section>
+
         <Section title='技能资质' >
             <ModifiableRow modifiable={modifiable} label='学历' >
                 <Text>{data.education}</Text>
-                <input type="text" value={data.education} />
+                <Input type="text" value={data.education} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='个人技能' >
                 <Text>{data.skills}</Text>
-                <input type="text" value={data.skills} />
+                <Input type="text" value={data.skills} />
             </ModifiableRow>
-
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='资质证明' >
                 <Text>{data.photos}</Text>
-                <input type="text" value={data.photos} />
+                <Input type="text" value={data.photos} />
             </ModifiableRow>
         </Section>
+
         <Section title='紧急联系人' >
             <ModifiableRow modifiable={modifiable} label='姓名' >
                 <Text>{data.perilName}</Text>
-                <input type="text" value={data.perilName} />
+                <Input type="text" value={data.perilName} />
             </ModifiableRow>
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='联系电话' >
                 <Text>{data.perilPhone}</Text>
-                <input type="text" value={data.perilPhone} />
+                <Input type="text" value={data.perilPhone} />
             </ModifiableRow>
-
+            <Separator/>
             <ModifiableRow modifiable={modifiable} label='关系' >
                 <Text>{data.perilRela}</Text>
-                <input type="text" value={data.perilRela} />
+                <Input type="text" value={data.perilRela} />
             </ModifiableRow>
         </Section>
+
         <Info/>
-        <div style={{padding: '0.5rem'}}>
-            <Btn onClick={() => setModifiable(!modifiable)} >修改资料</Btn>
-        </div>
-    </Container>
+
+        <FullWidthButton onClick={() => setModifiable(!modifiable)} >修改资料</FullWidthButton>
+    </Container>)
 }

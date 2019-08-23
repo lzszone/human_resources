@@ -7,8 +7,7 @@ import useApi from '../../hooks/use_api';
 import api from '../../service/api';
 import useTitle from '../../hooks/use_title';
 import { JobSignupHistoryStatusEnum, ListQueryParam, JobSignupHistory } from '../../service/api';
-import Loading from '../../components/loading';
-import FetchingError from '../../components/fetching_error';
+import renderPage from '../../components/render_page';
 
 const tagMap = {
     [JobSignupHistoryStatusEnum.all]: '全部',
@@ -43,15 +42,9 @@ export default function JobSignup(props: RouteComponentProps) {
     const { location, match, history } = props;
     const { pageNum, pageSize, status } = qs.parse(location.search.replace('?', '')) as ListQueryParam<{ status: JobSignupHistoryStatusEnum }>;
     const { data, error, isLoading } = useApi(api.customer.jobSignupHistory.list, pageSize, pageNum, status);
-
     useTitle('报名记录');
-    if (isLoading) {
-        return <Loading />
-    }
-    if (error) {
-        return <FetchingError error={error} />
-    }
-    return <div>
+
+    return renderPage(error, isLoading, data, (data) => <div>
         <div>
             {Object.entries(tagMap).map(([s, t]) =>
                 <Tag
@@ -66,5 +59,5 @@ export default function JobSignup(props: RouteComponentProps) {
         <div>
             {data.list.map(d => <Signup {...d} key={d.id} />)}
         </div>
-    </div>
+    </div>)
 }
