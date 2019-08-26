@@ -398,7 +398,13 @@ const api = {
         }
     },
     complaint: {
-        submit(type: number, complaintTypeId: number, content: string, evidences: Array<string>): ApiResult<void> {
+        submit(args: {
+            type: number, 
+            complaintTypeId?: number, 
+            content: string, 
+            evidences?: Array<string>
+        }): ApiResult<void> {
+            const {type, complaintTypeId, content, evidences} = args;
             return axiosPost('/api/complaint/submit', { type, complaintTypeId, content, evidences })
         },
         list(p: PageParam): ApiResult<ListData<{

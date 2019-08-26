@@ -34,10 +34,13 @@ module.exports = {
       }, {
         loader: 'css-loader'
       }]
+    }, {
+      test: /\.(png|jpg|jpeg|)$/,
+      loader: 'file-loader'
     }]
   },
   resolve: {
-    extensions: ['.js', '.ts', '.tsx', '.jsx']
+    extensions: ['.js', '.ts', '.tsx', '.jsx', 'png', 'jpg', 'jpeg']
   },
   devServer: {
     contentBase: 'dist',

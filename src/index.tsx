@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import 'normalize.css';
+import '../assets/default.css';
 
 import View from './view';
 
