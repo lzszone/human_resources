@@ -7,8 +7,6 @@ export const Button = styled.button`
     background-color: ${theme.blue};
     color: white;
     border-radius: ${5 / 14}rem;
-    border: none;
-    cursor: pointer;
 `;
 
 const Btn = styled(Button)`

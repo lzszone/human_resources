@@ -1,14 +1,14 @@
 import React from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch, RouteComponentProps } from 'react-router-dom';
 
 import Feedback from './feedback';
 import List from './list';
-import useTitle from '../../../hooks/use_title';
 
-export default function Fb() {
-    useTitle('意见反馈');
+export default function Fb(props: RouteComponentProps) {
+    const {match: { path }} = props;
+
     return <Switch>
-        <Route path='/' exact component={Feedback} />
-        <Route path='/recruits' component={List} />
+        <Route path={`${path}/`} exact component={Feedback} />
+        <Route path={`${path}/list`} component={List} />
     </Switch>
 }
