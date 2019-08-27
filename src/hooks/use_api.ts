@@ -1,6 +1,6 @@
 import { useState, useEffect, useReducer } from "react";
 import axios from 'axios';
-import _ from 'lodash';
+import isEqual from 'lodash/isEqual';
 
 import { ApiResult } from '../service/api';
 
@@ -11,7 +11,7 @@ type UseApiResult<T> = {
 };
 
 function reducer<T>(state: T, action: T) {
-    if (_.isEqual(state, action)) {
+    if (isEqual(state, action)) {
         return state
     }
     return action

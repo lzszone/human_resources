@@ -429,13 +429,16 @@ const api = {
         }> {
             return axiosPost('/api/common/getDictData', { dictName })
         },
-        uploadImage(file: File, serviceId: number): ApiResult<{
+        uploadImage(args: {
+            file: File,
+            serviceId: 1 | 2 | 3 | 4 //业务ID(1: 上传用户头像, 2: 上传个人信息照片, 3: 上传Banner图片, 4: 意见反馈图片)
+        }): ApiResult<{
             fileSuffix: string,//	文件后缀
             savePath: string,//	存储路径，任何提供图片地址的接口需要传入该地址
             previewPath: string,//	预览地址，请不要将该地址传入任何需要传入图片地址的接口
             fileMd5: string,//	文件MD5值
         }> {
-            return axiosPost('/api/common/uploadImage', { file, serviceId })
+            return axiosPost('/api/common/uploadImage', args)
         }
     },
     area: {

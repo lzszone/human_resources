@@ -6,6 +6,7 @@ const El = styled.div`
     justify-content: space-between;
     width: 4rem;
     margin-right: ${8 / 14}rem;
+    color: #666666;
 `;
 
 export default function RowHeader(props: PropsWithChildren<{children: string}>) {

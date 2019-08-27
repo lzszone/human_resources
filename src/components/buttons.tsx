@@ -14,6 +14,7 @@ const Btn = styled(Button)`
     width: 100%;
     text-align: center;
     height: ${48 / 14}rem;
+    font-size: ${18 / 14}rem;
 `;
 
 export function FullWidthButton(props: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>) {

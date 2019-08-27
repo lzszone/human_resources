@@ -45,13 +45,23 @@ const Img = styled.img`
     position: absolute;
 `;
 
+const Uploading = styled.div`
+    ::after {
+        content: '上传中...'
+    }
+`;
+
 export default function RemovableElement(props: PropsWithChildren<{
     onDelete: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
-    url: string
+    url: string,
+    isUploading: boolean
 }>) {
-    const {url, onDelete} = props;
+    const {url, onDelete, isUploading} = props;
     return <PreviewContainer>
-        <PreviewImage src={url} />
+        {isUploading?
+            <Uploading/>:
+            <PreviewImage src={url} />
+        }
         <Remove onClick={onDelete} ><Img src={del} alt='删除' /></Remove>
     </PreviewContainer>
 }
