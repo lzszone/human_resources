@@ -78,31 +78,71 @@ const Select = styled.select`
     border: none;
 `;
 
-export default function Feedback(props: RouteComponentProps) {
-    const {match: {path}} = props;
-    useTitle('意见反馈');
-    const uploaderRef = useRef(null);
-    const [type, setType] = useState(0);
-    const [content, setContent] = useState('');
-    const [evidences, setEvidences] = useState<Array<{url: string, isUploading: boolean}>>([]);
-    const [complaintTypeId, setCompaintTypeId] = useState(undefined);
+class IMG {
+    state: 'uploading' | 'failed' | 'uploaded';
+    fileSuffix: string;
+    previewPath: string;
+    savePath: string;
+    fileMd5: string;
+    file: File;
 
-    function del(url: string) {
-        const index = evidences.findIndex(el => el.url === url);
-        if(index) {
-            setEvidences(evidences.filter(_url => _url !== url))
-        }
+    constructor(file: File) {
+        this.file = file;
+        this.state = 'uploading';
     }
 
-    function add(url: string) {
-        setEvidences(evidences.concat(url))
+    upload() {
+        const fd = new FormData();
+        fd.append('file', this.file);
+        fd.append('serviceId', '4');
+        return api.common.uploadImage(fd).unwrap()
+            .then(({data: { fileSuffix, previewPath, savePath, fileMd5 }}) => {
+                this.fileSuffix = fileSuffix;
+                this.fileMd5 = fileMd5;
+                this.savePath = savePath;
+                this.previewPath = previewPath;
+                this.state = 'uploaded'
+            })
+            .catch((e: Error) => {
+                this.state = 'failed';
+                console.error(e);
+                throw e
+            });
+    }
+}
+
+export default function Feedback(props: RouteComponentProps) {
+    const { match: { path } } = props;
+    useTitle('意见反馈');
+    const uploaderRef = useRef<HTMLInputElement>(null);
+    const [type, setType] = useState(0);
+    const [content, setContent] = useState('');
+    const [evidences, setEvidences] = useState<Array<IMG>>([]);
+    const [complaintTypeId, setCompaintTypeId] = useState(undefined);
+
+    function del(img: IMG) {
+        setEvidences(evidences.filter(e => e !== img))
+    }
+
+    function add(file: File) {
+        const img = new IMG(file);
+        const es = evidences.concat(img);
+        setEvidences(es);
+        img.upload()
+            .then(() => setEvidences([...es]))
+            .catch(e => setEvidences(evidences))
     }
 
     function submit() {
-        api.complaint.submit({
+        const hasUploading = evidences.find(e => e.state === 'uploading');
+        if(hasUploading) {
+            return alert('还有正在上传的图片, 请等待上传完成或删除图片后再提交')
+        }
+        const es = evidences.map(e => e.savePath);
+        return api.complaint.submit({
             type, 
             content,
-            evidences
+            evidences: es
         })
     }
 
@@ -117,6 +157,7 @@ export default function Feedback(props: RouteComponentProps) {
     }
 
     return <Container>
+        <input type="file" hidden ref={uploaderRef} onChange={e => add(e.target.files[0])} />
         <Row>
             <RowHeader>反馈类型</RowHeader>
             <Select value={type} onChange={changeType} >
@@ -147,15 +188,14 @@ export default function Feedback(props: RouteComponentProps) {
                 </Section>
                 <Section title='截图(选填)' >
                     <Wrapper2>
-                        {evidences.map({} => 
-                            <Wrapper key={url}><RemovableImg url={url} onDelete={e => del(url)} /></Wrapper> 
+                        {evidences.map(img => 
+                            <Wrapper key={img.savePath}><RemovableImg url={img.savePath} isUploading={img.state === 'uploading'} onDelete={e => del(img)} /></Wrapper> 
                         )}
-                        <Wrapper><AddButton onClick={e => add('https://wrong')} /></Wrapper> 
+                        <Wrapper><AddButton onClick={e => uploaderRef.current.click()} /></Wrapper> 
                     </Wrapper2>
                 </Section>
                 <FullWidthButton onClick={e => submit()} >提交</FullWidthButton>
             </>
         }
-        <input type="file" hidden ref={uploaderRef} onChange={e => add(e.target.files[0])} />
     </Container>
 }

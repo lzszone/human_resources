@@ -13,11 +13,26 @@ function setHeaders(obj: any) {
     Object.assign(ins.defaults.headers, obj)
 }
 
+export class UnwrappableResult<T> {
+    promise: Promise<AxiosResponse<T>>;
+    source: CancelTokenSource;
+
+    constructor(promise: Promise<AxiosResponse<T>>, source: CancelTokenSource) {
+        this.promise = promise;
+        this.source = source
+    }
+
+    unwrap(): Promise<{data: T, source: CancelTokenSource}> {
+        return this.promise
+            .then(({data}) => ({ source: this.source, data }))
+    }
+}
+
 function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig = {}) {
     const source = axios.CancelToken.source();
     options.cancelToken = source.token;
     const promise = ins.post(url, postBody, options);
-    return { source, promise }
+    return new UnwrappableResult(promise, source)
 }
 
 ins.interceptors.response.use(function (response: AxiosResponse<CustomResponse<any>>) {
@@ -37,11 +52,6 @@ ins.interceptors.request.use(function (req) {
     req.data = qs.stringify(req.data);
     return req
 });
-
-export interface ApiResult<T> {
-    source: CancelTokenSource,
-    promise: Promise<AxiosResponse<T>>
-};
 
 export enum JobSignupHistoryStatusEnum {
     all = 0,
@@ -307,10 +317,10 @@ export interface MyBalanceChangeHistory {
 
 const api = {
     customer: {
-        sendAuthorizationCode(mobile: string, ticket: string, randomStr: string): ApiResult<string> {
-            return axiosPost('/api/customer/sendAuthorizationCode', { mobile, ticket, randomStr }) as ApiResult<string>
+        sendAuthorizationCode(mobile: string, ticket: string, randomStr: string): UnwrappableResult<string> {
+            return axiosPost('/api/customer/sendAuthorizationCode', { mobile, ticket, randomStr })
         },
-        login(param: LoginParam): ApiResult<{
+        login(param: LoginParam): UnwrappableResult<{
             token: string,//	鉴权Token，需要鉴权的业务需要带上该Token识别身份
             tokenExpireTime: string,//	Token过期时间戳
             loginType: LoginType,// 登录方式(1: 手机号码登录, 2: 微信登陆)
@@ -322,20 +332,20 @@ const api = {
         }> {
             return axiosPost('/api/customer/login', param)
         },
-        bindDealer(mobile: string, code: string, requestId: string, dealerId: number): ApiResult<void> {
+        bindDealer(mobile: string, code: string, requestId: string, dealerId: number): UnwrappableResult<void> {
             return axiosPost('/api/customer/bindDealer', { mobile, code, requestId, dealerId })
         },
-        submitProfile(p: SubmitProfileParam): ApiResult<void> {
+        submitProfile(p: SubmitProfileParam): UnwrappableResult<void> {
             return axiosPost('/api/customer/submitProfile', p)
         },
-        getProfile(): ApiResult<CustomerProfile> {
+        getProfile(): UnwrappableResult<CustomerProfile> {
             return axiosPost('/api/customer/getProfile')
         },
-        setLoginPass(code: string, requestId: string, newPass: string): ApiResult<void> {
+        setLoginPass(code: string, requestId: string, newPass: string): UnwrappableResult<void> {
             return axiosPost('/api/customer/setLoginPass', { code, requestId, newPass })
         },
         message: {
-            list(p: PageParam): ApiResult<ListData<{
+            list(p: PageParam): UnwrappableResult<ListData<{
                 id: number,	//消息ID
                 title: string, //	消息标题
                 content: string,//	消息内容
@@ -344,56 +354,56 @@ const api = {
             }>> {
                 return axiosPost('/api/customer/message/list', p)
             },
-            markAsRead(id: number): ApiResult<void> {
+            markAsRead(id: number): UnwrappableResult<void> {
                 return axiosPost('/api/customer/message/read', { id })
             },
-            markAllAsRead(): ApiResult<void> {
+            markAllAsRead(): UnwrappableResult<void> {
                 return axiosPost('/api/customer/message/allRead')
             }
         },
         jobSignupHistory: {
-            list(pageSize: number = 20, pageNum: number = 1, status: JobSignupHistoryStatusEnum = JobSignupHistoryStatusEnum.all): ApiResult<ListData<JobSignupHistory>> {
+            list(pageSize: number = 20, pageNum: number = 1, status: JobSignupHistoryStatusEnum = JobSignupHistoryStatusEnum.all): UnwrappableResult<ListData<JobSignupHistory>> {
                 return axiosPost('/api/customer/jobSignupHistory/list', { pageSize, pageNum, status })
             }
         },
-        uploadCustomerInfo(customerNick: string, customerAvatar: string): ApiResult<void> {
+        uploadCustomerInfo(customerNick: string, customerAvatar: string): UnwrappableResult<void> {
             return axiosPost('/api/customer/uploadCustomerInfo', { customerNick, customerAvatar })
         },
-        getCustomerInfo(): ApiResult<CustomerInfo> {
+        getCustomerInfo(): UnwrappableResult<CustomerInfo> {
             return axiosPost('/api/customer/getCustomerInfo')
         },
-        getMyStationUser(): ApiResult<StationUser> {
+        getMyStationUser(): UnwrappableResult<StationUser> {
             return axiosPost('/api/customer/getMyStationUser')
         },
-        getMyWageCardInfo(): ApiResult<WageCardInfo> {
+        getMyWageCardInfo(): UnwrappableResult<WageCardInfo> {
             return axiosPost('/api/customer/getMyWageCardInfo')
         },
-        getMyWork(monthTimeId: number): ApiResult<Work> {
+        getMyWork(monthTimeId: number): UnwrappableResult<Work> {
             return axiosPost('/api/customer/getMyWork', { monthTimeId })
         }
 
     },
     banner: {
-        list(): ApiResult<ListData<Banner>> {
+        list(): UnwrappableResult<ListData<Banner>> {
             return axiosPost('/api/banner/list')
         }
     },
     borrow: {
-        submitBorrow(borrowAmount: number, reason: string): ApiResult<void> {
+        submitBorrow(borrowAmount: number, reason: string): UnwrappableResult<void> {
             return axiosPost('/api/borrow/submitBorrow', { borrowAmount, reason })
         },
-        list(pageSize: number = 20, pageNum: number = 1): ApiResult<ListData<Borrow>> {
+        list(pageSize: number = 20, pageNum: number = 1): UnwrappableResult<ListData<Borrow>> {
             return axiosPost('/api/borrow/list', { pageNum, pageSize })
         }
     },
     monthTime: {
-        list(pageNum: number = 1, pageSize: number = 20): ApiResult<ListData<WorkTime>> {
+        list(pageNum: number = 1, pageSize: number = 20): UnwrappableResult<ListData<WorkTime>> {
             return axiosPost('/api/monthTime/list', { pageNum, pageSize })
         },
-        detail(id: number): ApiResult<WorkDetail> {
+        detail(id: number): UnwrappableResult<WorkDetail> {
             return axiosPost('/api/monthTime/detail', { id })
         },
-        confirmMonthTime(id: number): ApiResult<void> {
+        confirmMonthTime(id: number): UnwrappableResult<void> {
             return axiosPost('/api/monthTime/confirmMonthTime', { id })
         }
     },
@@ -403,11 +413,11 @@ const api = {
             complaintTypeId?: number, 
             content: string, 
             evidences?: Array<string>
-        }): ApiResult<void> {
+        }): UnwrappableResult<void> {
             const {type, complaintTypeId, content, evidences} = args;
             return axiosPost('/api/complaint/submit', { type, complaintTypeId, content, evidences })
         },
-        list(p: PageParam): ApiResult<ListData<{
+        list(p: PageParam): UnwrappableResult<ListData<{
             id: number, //	反馈ID
             type: number,//	反馈类型(1: 意见反馈, 2: 投诉)
             complaintType: string, //	投诉类型
@@ -421,7 +431,7 @@ const api = {
         }
     },
     common: {
-        getDictData(dictName: string): ApiResult<{
+        getDictData(dictName: string): UnwrappableResult<{
             id: number,//	字典数据ID
             dictName: string,//	字典名称
             dataKey: string,//	字典数据名称
@@ -429,28 +439,25 @@ const api = {
         }> {
             return axiosPost('/api/common/getDictData', { dictName })
         },
-        uploadImage(args: {
-            file: File,
-            serviceId: 1 | 2 | 3 | 4 //业务ID(1: 上传用户头像, 2: 上传个人信息照片, 3: 上传Banner图片, 4: 意见反馈图片)
-        }): ApiResult<{
+        uploadImage(args: FormData): UnwrappableResult<{
             fileSuffix: string,//	文件后缀
             savePath: string,//	存储路径，任何提供图片地址的接口需要传入该地址
             previewPath: string,//	预览地址，请不要将该地址传入任何需要传入图片地址的接口
             fileMd5: string,//	文件MD5值
         }> {
-            return axiosPost('/api/common/uploadImage', args)
+            return axiosPost('/api/common/uploadImage', args, { headers: {'Content-Type': 'multipart/form-data'} })
         }
     },
     area: {
-        queryAllArea(level: AreaLevel): ApiResult<ListData<Area>> {
+        queryAllArea(level: AreaLevel): UnwrappableResult<ListData<Area>> {
             return axiosPost('/api/area/queryAllArea', { level })
         },
-        queryAreaByParent(parentId: number): ApiResult<ListData<Area>> {
+        queryAreaByParent(parentId: number): UnwrappableResult<ListData<Area>> {
             return axiosPost('/api/area/queryAreaByParent', { parentId })
         }
     },
     recruit: {
-        list(p: RecruitParam): ApiResult<ListData<{
+        list(p: RecruitParam): UnwrappableResult<ListData<{
             id: number,//	招聘信息ID
             title: string,//	招聘标题
             minSalary: number,//	最低招聘工资
@@ -462,7 +469,7 @@ const api = {
         }>> {
             return axiosPost('/api/recruit/list', p)
         },
-        getSearchParams(): ApiResult<Array<{
+        getSearchParams(): UnwrappableResult<Array<{
             id: number,
             labelName: string,
             detailList: Array<{
@@ -472,7 +479,7 @@ const api = {
         }>> {
             return axiosPost('/api/recruit/getSearchParams')
         },
-        detail(id: number): ApiResult<{
+        detail(id: number): UnwrappableResult<{
             id: number,//	招聘信息ID
             title: string,//	招聘标题
             minSalary: number,//	最低招聘工资
@@ -503,29 +510,29 @@ const api = {
         }> {
             return axiosPost('/api/recruit/detail', { id })
         },
-        signup(recruitId: number): ApiResult<void> {
+        signup(recruitId: number): UnwrappableResult<void> {
             return axiosPost('/api/recruit/signup', { recruitId })
         }
     },
     wx: {
-        getWxConfigInfo(wxKey: string): ApiResult<{ appId: string, state: string }> {
+        getWxConfigInfo(wxKey: string): UnwrappableResult<{ appId: string, state: string }> {
             return axiosPost('/api/wx/getWxConfigInfo', { wxKey })
         },
-        auth(code: string, state: string, wxKey: string): ApiResult<WXLoginResult> {
+        auth(code: string, state: string, wxKey: string): UnwrappableResult<WXLoginResult> {
             return axiosPost('/api/wx/auth', { code, state, wxKey })
         }
     },
     recommend: {
-        getMyCustomerInfo(): ApiResult<MyCustomerInfo> {
+        getMyCustomerInfo(): UnwrappableResult<MyCustomerInfo> {
             return axiosPost('/api/recommend/getMyCustomerInfo')
         },
-        submitMyBankInfo(bankId: number, bankCard: string, cardholder: string): ApiResult<void> {
+        submitMyBankInfo(bankId: number, bankCard: string, cardholder: string): UnwrappableResult<void> {
             return axiosPost('/api/recommend/submitMyBankInfo', { bankId, bankCard, cardholder })
         },
-        getMyBalanceChangeHistory(pageNum: number = 1, pageSize: number = 20): ApiResult<ListData<MyBalanceChangeHistory>> {
+        getMyBalanceChangeHistory(pageNum: number = 1, pageSize: number = 20): UnwrappableResult<ListData<MyBalanceChangeHistory>> {
             return axiosPost('/api/recommend/getMyBalanceChangeHistory', { pageNum, pageSize })
         },
-        withdrawal(amount: number): ApiResult<void> {
+        withdrawal(amount: number): UnwrappableResult<void> {
             return axiosPost('/api/recommend/withdrawal', { amount })
         }
     }

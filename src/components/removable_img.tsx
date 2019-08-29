@@ -51,7 +51,7 @@ const Uploading = styled.div`
     }
 `;
 
-export default function RemovableElement(props: PropsWithChildren<{
+export default function RemovableImg(props: PropsWithChildren<{
     onDelete: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
     url: string,
     isUploading: boolean

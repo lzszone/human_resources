@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer } from "react";
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 
-import { ApiResult } from '../service/api';
+import { UnwrappableResult } from '../service/api';
 
 type UseApiResult<T> = {
     data?: T,
@@ -17,7 +17,7 @@ function reducer<T>(state: T, action: T) {
     return action
 }
 
-export default function useApi<T, I extends Array<any>>(callFunction: (...args: I) => ApiResult<T>, ...inputs: I): UseApiResult<T> {
+export default function useApi<T, I extends Array<any>>(callFunction: (...args: I) => UnwrappableResult<T>, ...inputs: I): UseApiResult<T> {
     const [args, dispatch] = useReducer(reducer, inputs);
     const [state, setState] = useState({
         isLoading: true,
@@ -30,7 +30,7 @@ export default function useApi<T, I extends Array<any>>(callFunction: (...args: 
     }, [inputs]);
 
     useEffect(function () {
-        const { source, promise }: ApiResult<T> = callFunction.apply(null, args);
+        const { source, promise }: UnwrappableResult<T> = callFunction.apply(null, args);
         setState({
             isLoading: true,
             data: null,
