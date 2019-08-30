@@ -105,7 +105,6 @@ class IMG {
             })
             .catch((e: Error) => {
                 this.state = 'failed';
-                console.error(e);
                 throw e
             });
     }
@@ -118,7 +117,8 @@ export default function Feedback(props: RouteComponentProps) {
     const [type, setType] = useState(0);
     const [content, setContent] = useState('');
     const [evidences, setEvidences] = useState<Array<IMG>>([]);
-    const [complaintTypeId, setCompaintTypeId] = useState(undefined);
+    const [complaintTypeId, setCompaintTypeId] = useState<string>(undefined);
+    const [error, setError] = useState<null | Error>(null);
 
     function del(img: IMG) {
         setEvidences(evidences.filter(e => e !== img))
@@ -130,7 +130,11 @@ export default function Feedback(props: RouteComponentProps) {
         setEvidences(es);
         img.upload()
             .then(() => setEvidences([...es]))
-            .catch(e => setEvidences(evidences))
+            .catch(e => {
+                console.error(e);
+                setEvidences(evidences);
+                setError(e)
+            })
     }
 
     function submit() {
