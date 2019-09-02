@@ -2,7 +2,7 @@ import React from 'react';
 import { RouteComponentProps } from 'react-router';
 
 import useApi from '../../hooks/use_api';
-import api from '../../service/api';
+import api from '../../services/api';
 import renderPage from '../../components/render_page';
 
 export default function Detail(props: RouteComponentProps<{ id: string }>) {

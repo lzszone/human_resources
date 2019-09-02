@@ -3,7 +3,7 @@ import styled from 'styled-components/macro';
 
 import useTitle from '../../hooks/use_title';
 import useApi from '../../hooks/use_api';
-import api from '../../service/api';
+import api from '../../services/api';
 import Input from '../../components/input';
 import Container from '../../components/container';
 import Section from '../../components/section';

@@ -40,7 +40,7 @@ ins.interceptors.response.use(function (response: AxiosResponse<CustomResponse<a
     if (code !== 1000) {
         const error = new CustomError(code, message);
         console.error(`请求错误, 错误码: ${code}, 错误信息: ${message}`);
-        return Promise.reject(error)
+        throw error
     }
     return data;
 }, function (error) {
@@ -93,6 +93,7 @@ class CustomError extends Error {
     constructor(code: number, message: string) {
         super(message);
         this.code = code;
+        this.message = message;
     }
 };
 

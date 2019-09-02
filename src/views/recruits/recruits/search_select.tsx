@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { RecruitParam } from '../../../service/api';
+import { RecruitParam } from '../../../services/api';
 import renderPage from '../../../components/render_page';
 
 interface Props extends RecruitParam { goto: (p: RecruitParam) => void, searchProps: any };
