@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useRef } from 'react';
+import React, { useState, ChangeEvent, useRef, MouseEvent, useContext } from 'react';
 import styled from 'styled-components/macro';
 import { RouteComponentProps } from 'react-router-dom';
 
@@ -9,10 +9,12 @@ import RowHeader from '../../../components/row_header';
 import RemovableImg from '../../../components/removable_img';
 import AddImg from '../../../../assets/add.png';
 import { FullWidthButton } from '../../../components/buttons';
-import api from '../../../service/api';
+import api from '../../../services/api';
 import useTitle from '../../../hooks/use_title';
 import Link from '../../../components/link';
 import theme from '../../../components/theme';
+import ModalContext from '../../../contexts/modal';
+import RouterContext from '../../../contexts/router';
 
 const FullWidthLink = styled(Link)`
     display: block;
@@ -76,6 +78,12 @@ const Wrapper2 = styled.div`
 const Select = styled.select`
     float: right;
     border: none;
+    background-color: white;
+    height: ${21 / 14}rem;
+    font-size: ${15 / 14}rem;
+    padding: 0;
+    line-height: 1;
+    margin-top: -0.3rem;
 `;
 
 class IMG {
@@ -118,7 +126,8 @@ export default function Feedback(props: RouteComponentProps) {
     const [content, setContent] = useState('');
     const [evidences, setEvidences] = useState<Array<IMG>>([]);
     const [complaintTypeId, setCompaintTypeId] = useState<string>(undefined);
-    const [error, setError] = useState<null | Error>(null);
+    const Modal = useContext(ModalContext);
+    const Router = useContext(RouterContext);
 
     function del(img: IMG) {
         setEvidences(evidences.filter(e => e !== img))
@@ -131,9 +140,11 @@ export default function Feedback(props: RouteComponentProps) {
         img.upload()
             .then(() => setEvidences([...es]))
             .catch(e => {
-                console.error(e);
                 setEvidences(evidences);
-                setError(e)
+                Modal.show({
+                    title: '出错啦: ',
+                    message: e.message
+                })
             })
     }
 
@@ -147,7 +158,8 @@ export default function Feedback(props: RouteComponentProps) {
             type, 
             content,
             evidences: es
-        })
+        }).unwrap()
+            .then(() => Router.redirect('/settings/feedback/list'))
     }
 
     function changeType(e: ChangeEvent<HTMLSelectElement>) {
@@ -155,7 +167,7 @@ export default function Feedback(props: RouteComponentProps) {
             setCompaintTypeId(undefined);
             setType(1)
         } else {
-            setCompaintTypeId(1);
+            setCompaintTypeId('1');
             setType(2)
         }
     }
@@ -174,7 +186,7 @@ export default function Feedback(props: RouteComponentProps) {
         {type === 2? 
                 <Row>
                     <RowHeader>投诉类型</RowHeader>
-                    <Select value={complaintTypeId} onChange={e => setCompaintTypeId(Number(e.target.value))} >
+                    <Select value={complaintTypeId} onChange={e => setCompaintTypeId(e.target.value)} >
                         {Object.entries(complaintTypeIdMap).map(([cTypeId, text]) => 
                             <option value={cTypeId} key={cTypeId} >{text}</option>    
                         )}

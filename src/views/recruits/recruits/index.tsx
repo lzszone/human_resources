@@ -4,7 +4,7 @@ import qs from 'qs';
 
 import useStaticApi from '../../../hooks/use_api';
 import useTitle from '../../../hooks/use_title';
-import api, { RecruitParam } from '../../../service/api';
+import api, { RecruitParam } from '../../../services/api';
 import SearchSelect from './search_select';
 import renderPage from '../../../components/render_page';
 

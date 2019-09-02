@@ -6,7 +6,7 @@ import styled from 'styled-components/macro';
 import useStaticApi from '../../hooks/use_api';
 import api from '../../service/api';
 import useTitle from '../../hooks/use_title';
-import { JobSignupHistoryStatusEnum, ListQueryParam, JobSignupHistory } from '../../service/api';
+import { JobSignupHistoryStatusEnum, ListQueryParam, JobSignupHistory } from '../../services/api';
 import renderPage from '../../components/render_page';
 
 const tagMap = {
