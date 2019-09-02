@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components/macro';
 
 import useTitle from '../../hooks/use_title';
-import useApi from '../../hooks/use_api';
+import useStaticApi from '../../hooks/use_api';
 import api from '../../service/api';
 import Input from '../../components/input';
 import Container from '../../components/container';
@@ -31,7 +31,7 @@ function Info() {
 
 export default function Profile() {
     useTitle('我的资料');
-    const { data, error, isLoading } = useApi(api.customer.getProfile);
+    const { data, error, isLoading } = useStaticApi(api.customer.getProfile);
     const [ modifiable, setModifiable ] = useState(false);
     
     return renderPage(error, isLoading, data, data => <Container>

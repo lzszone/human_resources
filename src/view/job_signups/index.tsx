@@ -3,7 +3,7 @@ import { RouteComponentProps, Link } from 'react-router-dom';
 import qs from 'qs';
 import styled from 'styled-components/macro';
 
-import useApi from '../../hooks/use_api';
+import useStaticApi from '../../hooks/use_api';
 import api from '../../service/api';
 import useTitle from '../../hooks/use_title';
 import { JobSignupHistoryStatusEnum, ListQueryParam, JobSignupHistory } from '../../service/api';
@@ -41,7 +41,7 @@ function Signup(props: JobSignupHistory) {
 export default function JobSignup(props: RouteComponentProps) {
     const { location, match, history } = props;
     const { pageNum, pageSize, status } = qs.parse(location.search.replace('?', '')) as ListQueryParam<{ status: JobSignupHistoryStatusEnum }>;
-    const { data, error, isLoading } = useApi(api.customer.jobSignupHistory.list, pageSize, pageNum, status);
+    const { data, error, isLoading } = useStaticApi(api.customer.jobSignupHistory.list, pageSize, pageNum, status);
     useTitle('报名记录');
 
     return renderPage(error, isLoading, data, (data) => <div>
