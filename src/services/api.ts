@@ -14,24 +14,24 @@ function setHeaders(obj: any) {
 }
 
 export class UnwrappableResult<T> {
-    promise: Promise<AxiosResponse<T>>;
+    promise: Promise<T>;
     source: CancelTokenSource;
 
-    constructor(promise: Promise<AxiosResponse<T>>, source: CancelTokenSource) {
+    constructor(promise: Promise<T>, source: CancelTokenSource) {
         this.promise = promise;
         this.source = source
     }
 
     unwrap(): Promise<{data: T, source: CancelTokenSource}> {
         return this.promise
-            .then(({data}) => ({ source: this.source, data }))
+            .then(data => ({ source: this.source, data }))
     }
 }
 
 function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig = {}) {
     const source = axios.CancelToken.source();
     options.cancelToken = source.token;
-    const promise = ins.post(url, postBody, options);
+    const promise: Promise<any> = ins.post(url, postBody, options);
     return new UnwrappableResult(promise, source)
 }
 
@@ -62,7 +62,7 @@ export enum JobSignupHistoryStatusEnum {
 
 export type ListQueryParam<T> = { pageSize: number, pageNum: number } & T;
 
-interface ListData<T> {
+export interface ListData<T> {
     pageNum: number, // 当前页
     pageSize: number, // 每页的数量
     size: number, // 当前页的数量

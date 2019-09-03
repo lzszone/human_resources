@@ -49,6 +49,7 @@ module.exports = {
     host: '127.0.0.1',
     hot: true,
     publicPath: '/',
+    progress: true,
     proxy: {
       '/api': {
         target: 'http://api.520work.cn/',

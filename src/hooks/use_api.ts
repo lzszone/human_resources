@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer } from "react";
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 
-import { UnwrappableResult } from '../service/api';
+import { UnwrappableResult, ListData } from "../services/api";
 
 export interface UseStaticApiResult<T> {
     data?: T,
@@ -12,7 +12,7 @@ export interface UseStaticApiResult<T> {
 
 export interface UsePaginationApiResult<T> {
     data?: T,
-    isloading: boolean,
+    isLoading: boolean,
     error?: Error,
     loadNext?: () => void
 };
@@ -29,9 +29,36 @@ const defualtPageArgs = {
     pageSize: 20
 };
 
-export function usePaginationApi<T, I extends Array<any>>(callFn: (...args: I) => UnwrappableResult<T>, ...inputs: I): UsePaginationApiResult<T> {
+export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(callFn: (...args: I) => UnwrappableResult<T>, ...inputs: I): UsePaginationApiResult<T> {
     const args = Object.assign({}, defualtPageArgs, inputs);
-    
+    const [state, setState] = useState<UsePaginationApiResult<T>>({
+        isLoading: true
+    });
+    ///sdfsdfsdfsdf
+
+    useEffect(function () {
+        const { source, promise }: UnwrappableResult<T> = callFn.apply(null, args);
+        setState({isLoading: true});
+        promise
+            .then(data => setState({
+                isLoading: false, 
+                data: {
+                    ...state.data,
+                    list: state.data.list.concat(data.list)
+                }
+            }))
+            .catch(e => {
+                if(axios.isCancel(e)) {
+                    return 
+                }
+                return setState({
+                    isLoading: false,
+                    error: e
+                })
+            });
+
+        return function () { source.cancel('cancel...') }
+    })
 }
 
 export default function useStaticApi<T, I extends Array<any>>(callFunction: (...args: I) => UnwrappableResult<T>, ...inputs: I): UseStaticApiResult<T> {
@@ -50,14 +77,16 @@ export default function useStaticApi<T, I extends Array<any>>(callFunction: (...
             isLoading: true,
         });
         promise
-            .then((d: any) => setState({ isLoading: false, data: d }))
-            .catch(e => {
+            .then(data => {
+                setState({ isLoading: false, data })
+            })
+            .catch((e: Error) => {
                 if (axios.isCancel(e)) {
                     return
                 }
                 return setState({ isLoading: false, error: e })
             });
-        return () => { console.log('cancel'); source.cancel('cancel...') }
+        return function () { source.cancel('cancel...') }
     }, [args]);
 
     return state
