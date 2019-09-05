@@ -22,9 +22,8 @@ export class UnwrappableResult<T> {
         this.source = source
     }
 
-    unwrap(): Promise<{data: T, source: CancelTokenSource}> {
+    unwrap() {
         return this.promise
-            .then(data => ({ source: this.source, data }))
     }
 }
 

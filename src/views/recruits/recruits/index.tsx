@@ -13,7 +13,7 @@ export default function Recruit(props: RouteComponentProps) {
     const { location, match, history } = props;
     const searchState = qs.parse(location.search.replace('?', '')) as RecruitParam;
     const { data, error, isLoading } = useStaticApi(api.recruit.list, searchState);
-    const Router = useContext(RouterContext)
+    const Router = useContext(RouterContext);
     const searchProps = useStaticApi(api.recruit.getSearchParams);
     useTitle('人才市场');
     function goto(args: RecruitParam) {

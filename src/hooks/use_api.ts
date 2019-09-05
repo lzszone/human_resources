@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer } from "react";
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 
-import { UnwrappableResult, ListData } from "../services/api";
+import api, { UnwrappableResult, ListData } from "../services/api";
 
 export interface UseStaticApiResult<T> {
     data?: T,
@@ -32,21 +32,26 @@ const defualtPageArgs = {
 export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(callFn: (...args: I) => UnwrappableResult<T>, ...inputs: I): UsePaginationApiResult<T> {
     const args = Object.assign({}, defualtPageArgs, inputs);
     const [state, setState] = useState<UsePaginationApiResult<T>>({
-        isLoading: true
+        isLoading: true,
     });
-    ///sdfsdfsdfsdf
 
-    useEffect(function () {
+    const sources = [];
+
+    function loadNext () {
         const { source, promise }: UnwrappableResult<T> = callFn.apply(null, args);
         setState({isLoading: true});
         promise
-            .then(data => setState({
-                isLoading: false, 
-                data: {
-                    ...state.data,
-                    list: state.data.list.concat(data.list)
-                }
-            }))
+            .then(data => {
+                args.pageNum ++;
+                return setState({
+                    isLoading: false, 
+                    data: {
+                        ...state.data,
+                        list: (state.data? state.data.list: []).concat(data.list)
+                    },
+                    loadNext: data.hasNextPage && data.list.length === args.pageSize? loadNext: undefined
+                })
+            })
             .catch(e => {
                 if(axios.isCancel(e)) {
                     return 
@@ -56,9 +61,14 @@ export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(
                     error: e
                 })
             });
+        sources.push(source)
+    }
 
-        return function () { source.cancel('cancel...') }
-    })
+    useEffect(function () {
+        return function () { sources.forEach(s => s.cancel('cancel...')) }
+    });
+
+    return state
 }
 
 export default function useStaticApi<T, I extends Array<any>>(callFunction: (...args: I) => UnwrappableResult<T>, ...inputs: I): UseStaticApiResult<T> {

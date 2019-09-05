@@ -15,6 +15,7 @@ import Link from '../../../components/link';
 import theme from '../../../components/theme';
 import ModalContext from '../../../contexts/modal';
 import RouterContext from '../../../contexts/router';
+import useAutoCancel from '../../../hooks/use_auto_cancel';
 
 const FullWidthLink = styled(Link)`
     display: block;
@@ -103,8 +104,9 @@ class IMG {
         const fd = new FormData();
         fd.append('file', this.file);
         fd.append('serviceId', '4');
-        return api.common.uploadImage(fd).unwrap()
-            .then(({data: { fileSuffix, previewPath, savePath, fileMd5 }}) => {
+        const result = api.common.uploadImage(fd);
+        result.promise
+            .then(({ fileSuffix, previewPath, savePath, fileMd5 }) => {
                 this.fileSuffix = fileSuffix;
                 this.fileMd5 = fileMd5;
                 this.savePath = savePath;
@@ -115,6 +117,7 @@ class IMG {
                 this.state = 'failed';
                 throw e
             });
+        return result
     }
 }
 
@@ -128,6 +131,7 @@ export default function Feedback(props: RouteComponentProps) {
     const [complaintTypeId, setCompaintTypeId] = useState<string>(undefined);
     const Modal = useContext(ModalContext);
     const Router = useContext(RouterContext);
+    const addSource = useAutoCancel();
 
     function del(img: IMG) {
         setEvidences(evidences.filter(e => e !== img))
@@ -137,7 +141,9 @@ export default function Feedback(props: RouteComponentProps) {
         const img = new IMG(file);
         const es = evidences.concat(img);
         setEvidences(es);
-        img.upload()
+        const { source, promise } = img.upload();
+        addSource(source);
+        promise
             .then(() => setEvidences([...es]))
             .catch(e => {
                 setEvidences(evidences);
