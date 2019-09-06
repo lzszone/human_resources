@@ -37,7 +37,7 @@ export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(
 
     const sources = [];
 
-    function loadNext () {
+    useEffect(function loadNext () {
         const { source, promise }: UnwrappableResult<T> = callFn.apply(null, args);
         setState({isLoading: true});
         promise
@@ -61,12 +61,9 @@ export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(
                     error: e
                 })
             });
-        sources.push(source)
-    }
-
-    useEffect(function () {
+        sources.push(source);
         return function () { sources.forEach(s => s.cancel('cancel...')) }
-    });
+    }, []);
 
     return state
 }
