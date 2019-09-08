@@ -1,7 +1,13 @@
 import React, { PropsWithChildren, UIEvent } from 'react';
 import throttle from 'lodash/throttle';
+import styled from 'styled-components/macro';
 
-import Container from './container';
+import C from './container';
+
+const Container = styled(C)`
+    padding-top: 0;
+    padding-bottom: 0;
+`;
 
 export default function ListView(props: PropsWithChildren<{onScrollToBottom?: () => void}>) {
     const { children, onScrollToBottom } = props;

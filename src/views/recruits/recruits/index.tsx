@@ -1,7 +1,8 @@
 import React, { useContext, useState, HtmlHTMLAttributes } from 'react';
-import { RouteComponentProps, Link } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router-dom';
 import qs from 'qs';
 import styled from 'styled-components/macro';
+import delay from 'lodash/delay';
 
 import useStaticApi, {usePaginationApi} from '../../../hooks/use_api';
 import useTitle from '../../../hooks/use_title';
@@ -13,6 +14,7 @@ import ListView from '../../../components/list_view';
 import searchIconSrc from '../../../../assets/search.png';
 import filterActivatedSrc from '../../../../assets/filter-activated.png';
 import filterSrc from '../../../../assets/filter.png';
+import RecruitCard from './recruit_card';
 
 const Input = styled.input`
     border: none;
@@ -100,7 +102,8 @@ export default function Recruit(props: RouteComponentProps) {
     const { location, match, history } = props;
     const searchState = qs.parse(location.search.replace('?', '')) as RecruitParam;
     const { data, error, isLoading, loadNext } = usePaginationApi(api.recruit.list, searchState);
-    const [ filterVisibility, setFilterVisibility ] = useState(false);
+    const [ maskVisibility, setMaskVisibility ] = useState(false);
+    const [ contentVisibility, setContentVisibility ] = useState(false);
     const Router = useContext(RouterContext);
     const searchProps = useStaticApi(api.recruit.getSearchParams);
     useTitle('人才市场');
@@ -108,7 +111,19 @@ export default function Recruit(props: RouteComponentProps) {
     function goto(args: RecruitParam) {
         Router.redirect(`${location.pathname}?${qs.stringify(args)}`)
     }
+
+    function handleMaskClick() {
+        setContentVisibility(false);
+        return delay(() => setMaskVisibility(false), 200)
+    }
+
+    function handleFilterClick() {
+        setMaskVisibility(true);
+        setContentVisibility(true)
+    }
+
     return renderPage(error, isLoading, data, (data) => <ListView onScrollToBottom={loadNext} >
+        <SearchSelect {...searchState} goto={goto} searchProps={searchProps} maskV={maskVisibility} contentV={contentVisibility} onMaskClick={handleMaskClick} />
         <ToolBar>
             <SearchDiv><SearchIcon src={searchIconSrc} /></SearchDiv>
             <Input placeholder='找找你心仪的工作~' />
@@ -116,10 +131,9 @@ export default function Recruit(props: RouteComponentProps) {
                 <CitySelect defaultValue='0' >
                     <CityOption value='0' >成都</CityOption>
                 </CitySelect>
-                <Filter activated={JSON.stringify(searchState) !== '{}'} onClick={() => setFilterVisibility(true)} />
+                <Filter activated={JSON.stringify(searchState) !== '{}'} onClick={handleFilterClick} />
             </FilterDiv>
         </ToolBar>
-        <SearchSelect {...searchState} goto={goto} searchProps={searchProps} visible={filterVisibility} hide={() => setFilterVisibility(false)} />
-        {data.list.map(r => <div key={r.id}><Link to={`${match.path}/${r.id}`} >{r.title}</Link></div>)}
+        {data.list.map(r => <RecruitCard key={r.id} {...r} />)}
     </ListView>)
 };

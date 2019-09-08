@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer } from "react";
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 
-import api, { UnwrappableResult, ListData } from "../services/api";
+import { UnwrappableResult, ListData } from "../services/api";
 
 export interface UseStaticApiResult<T> {
     data?: T,
@@ -30,10 +30,16 @@ const defualtPageArgs = {
 };
 
 export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(callFn: (...args: I) => UnwrappableResult<T>, ...inputs: I): UsePaginationApiResult<T> {
-    const args = Object.assign({}, defualtPageArgs, inputs);
+    const [_args, dispatch] = useReducer(reducer, inputs);
+
+    const args = Object.assign({}, defualtPageArgs, _args);
     const [state, setState] = useState<UsePaginationApiResult<T>>({
         isLoading: true,
     });
+
+    useEffect(function () {
+        dispatch(inputs);
+    }, [inputs]);
 
     const sources = [];
 
@@ -43,11 +49,18 @@ export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(
         promise
             .then(data => {
                 args.pageNum ++;
+                let list: Array<any>;
+                if(args.pageNum !== 2) {
+                    list = (state.data? state.data.list: []).concat(data.list)
+                } else {
+                    list = data.list
+                }
+
                 return setState({
                     isLoading: false, 
                     data: {
                         ...state.data,
-                        list: (state.data? state.data.list: []).concat(data.list)
+                        list
                     },
                     loadNext: data.hasNextPage && data.list.length === args.pageSize? loadNext: undefined
                 })
@@ -63,7 +76,7 @@ export function usePaginationApi<T extends ListData<any>, I extends Array<any>>(
             });
         sources.push(source);
         return function () { sources.forEach(s => s.cancel('cancel...')) }
-    }, []);
+    }, [_args]);
 
     return state
 }

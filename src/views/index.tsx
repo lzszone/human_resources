@@ -3,7 +3,6 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 
 import Recruit from './recruits';
 import JobSignups from './job_signups';
-import useTitle from '../hooks/use_title';
 import Settings from './settings';
 
 export default function Index() {

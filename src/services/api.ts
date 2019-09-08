@@ -59,6 +59,17 @@ export enum JobSignupHistoryStatusEnum {
     rejected = 3
 };
 
+export interface Recruit {
+    id: number,//	招聘信息ID
+    title: string,//	招聘标题
+    minSalary: number,//	最低招聘工资
+    maxSalary: number,//	最高招聘工资
+    companyAddress: string,//	公司地址
+    estimateNumber: number,//	预计招聘人数
+    recruitNumber: number,//	已报名人数
+    recruitLabels: Array<string>//	招聘标签列表，数组类型
+};
+
 export type ListQueryParam<T> = { pageSize: number, pageNum: number } & T;
 
 export interface ListData<T> {
@@ -457,16 +468,7 @@ const api = {
         }
     },
     recruit: {
-        list(p: RecruitParam): UnwrappableResult<ListData<{
-            id: number,//	招聘信息ID
-            title: string,//	招聘标题
-            minSalary: number,//	最低招聘工资
-            maxSalary: number,//	最高招聘工资
-            companyAddress: string,//	公司地址
-            estimateNumber: number,//	预计招聘人数
-            recruitNumber: number,//	已报名人数
-            recruitLabels: Array<string>//	招聘标签列表，数组类型
-        }>> {
+        list(p: RecruitParam): UnwrappableResult<ListData<Recruit>> {
             return axiosPost('/api/recruit/list', p)
         },
         getSearchParams(): UnwrappableResult<Array<{
