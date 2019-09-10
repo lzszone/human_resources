@@ -4,6 +4,7 @@ import { BrowserRouter, Redirect } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import 'normalize.css';
 import '../assets/default.css';
+import { delay } from 'lodash';
 
 import ModalContext, {Info} from './contexts/modal';
 import RouterContext from './contexts/router';
@@ -12,7 +13,7 @@ import Modal from './components/modal';
 import Board from './components/board';
 import { FullWidthButton } from './components/buttons';
 
-const ErrorContainer = styled(Board)`
+const InfoContainer = styled(Board)`
     position: absolute;
     width: 50%;
     height: 10rem;
@@ -35,14 +36,19 @@ function App() {
     }
 
     const [info, setInfo] = useState<Info | null>(null);
-    function show(msg: Info) {
+    let cb: () => any;
+    function show(msg: Info, callback?: () => any) {
+        cb = callback;
         return setInfo(msg)
     }
     function hide() {
-        return setInfo(null)
+        setInfo(null);
+        if(cb) {
+            delay(cb, 100)
+        }
     }
-    function handleModalClick(e: MouseEvent<HTMLDivElement>) {
-        setInfo(null)
+    function closeModal(e: MouseEvent<HTMLElement>) {
+        hide()
     }
 
     return <BrowserRouter>
@@ -53,11 +59,11 @@ function App() {
         }
         
         {info? 
-            <Modal onClick={handleModalClick} >
-                <ErrorContainer>
+            <Modal onClick={closeModal} >
+                <InfoContainer>
                     <div>{info.title}<div>{info.message}</div></div>
-                    <FullWidthButton style={{marginTop: '3rem'}} onClick={e => setInfo(null)} >确定</FullWidthButton>
-                </ErrorContainer>
+                    <FullWidthButton style={{marginTop: '3rem'}} onClick={closeModal} >确定</FullWidthButton>
+                </InfoContainer>
             </Modal>
             :
             null

@@ -2,7 +2,7 @@ import axios, { AxiosResponse, AxiosRequestConfig, CancelTokenSource } from 'axi
 import qs from 'qs';
 
 const ins = axios.create({
-    // baseURL: 'http://127.0.0.1:3000/',
+    baseURL: 'http://api.520work.cn/',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'X-Secret-Key': 'eyJraWQiOiIxMDAwMDAwMyIsInR5cCI6IkpXVCIsImFsZyI6IkhTMjU2In0.eyJsb2dpblR5cGUiOjIsImlzcyI6IjEzMDI4MTIwNzk3IiwiZXhwIjoxNTcxNjYwMTM5LCJpYXQiOjE1NjYxMzA1Mzl9.EnPXb3lRK4wDrHzGaO5yla5UjgNTnN4bXnu9FBK5SA0'
@@ -28,6 +28,10 @@ export class UnwrappableResult<T> {
 }
 
 function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig = {}) {
+    const profile = JSON.parse(localStorage.getItem('profile'));
+    if(profile) {
+        options.headers['X-Secret-Key'] = profile.token
+    }
     const source = axios.CancelToken.source();
     options.cancelToken = source.token;
     const promise: Promise<any> = ins.post(url, postBody, options);
@@ -48,7 +52,10 @@ ins.interceptors.response.use(function (response: AxiosResponse<CustomResponse<a
 });
 
 ins.interceptors.request.use(function (req) {
-    req.data = qs.stringify(req.data);
+    if(!(req.data instanceof FormData)) {
+        req.data = qs.stringify(req.data);
+    }
+    console.log(req)
     return req
 });
 
@@ -395,7 +402,7 @@ const api = {
 
     },
     banner: {
-        list(): UnwrappableResult<ListData<Banner>> {
+        list(): UnwrappableResult<Array<Banner>> {
             return axiosPost('/api/banner/list')
         }
     },
@@ -456,7 +463,8 @@ const api = {
             previewPath: string,//	预览地址，请不要将该地址传入任何需要传入图片地址的接口
             fileMd5: string,//	文件MD5值
         }> {
-            return axiosPost('/api/common/uploadImage', args, { headers: {'Content-Type': 'multipart/form-data'} })
+            // return axiosPost('/api/common/uploadImage', args, { headers: {'Content-Type': 'multipart/form-data'} })
+            return axiosPost('/api/common/uploadImage', args)
         }
     },
     area: {
@@ -497,7 +505,8 @@ const api = {
             bannerList: Array<{ //	Banner列表
                 id: number,	//Banner ID
                 path: string,//	Banner地址
-                sort: number//	Banner排序
+                sort: number,//	Banner排序
+                previewPath: string
             }>,
             labelModuleList: Array<{//	标签模块列表
                 id: number,	//Banner ID

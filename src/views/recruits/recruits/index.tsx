@@ -15,12 +15,14 @@ import searchIconSrc from '../../../../assets/search.png';
 import filterActivatedSrc from '../../../../assets/filter-activated.png';
 import filterSrc from '../../../../assets/filter.png';
 import RecruitCard from './recruit_card';
+import useLogin from '../../../hooks/use_login';
+import Banners from './banners';
 
 const Input = styled.input`
     border: none;
     font-size: ${12 / 14}rem;
-    margin-right: ${103 / 14}rem;
-    margin-left: ${36 / 14}rem;
+    margin: 0 ${103 / 14}rem 0 ${36 / 14}rem;
+    padding: 0;
     line-height: ${15 / 14}rem;
     display: block;
     height: ${32 / 14}rem;
@@ -106,7 +108,9 @@ export default function Recruit(props: RouteComponentProps) {
     const [ contentVisibility, setContentVisibility ] = useState(false);
     const Router = useContext(RouterContext);
     const searchProps = useStaticApi(api.recruit.getSearchParams);
+    const bannerProps = useStaticApi(api.banner.list);
     useTitle('人才市场');
+    useLogin();
 
     function goto(args: RecruitParam) {
         Router.redirect(`${location.pathname}?${qs.stringify(args)}`)
@@ -134,6 +138,7 @@ export default function Recruit(props: RouteComponentProps) {
                 <Filter activated={JSON.stringify(searchState) !== '{}'} onClick={handleFilterClick} />
             </FilterDiv>
         </ToolBar>
+        <Banners {...bannerProps} />
         {data.list.map(r => <RecruitCard key={r.id} {...r} />)}
     </ListView>)
 };

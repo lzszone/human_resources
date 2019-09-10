@@ -20,7 +20,7 @@ module.exports = {
         plugins: [
           [
             "styled-components", {
-              "displayName": true
+              "displayName": false
             }
           ],
           "macros",
@@ -35,29 +35,12 @@ module.exports = {
         loader: 'css-loader'
       }]
     }, {
-      test: /\.(png|jpg|jpeg|ttf|woff|svg|gif|eot)$/,
+      test: /\.(png|jpg|jpeg|)$/,
       loader: 'file-loader'
     }]
   },
   resolve: {
     extensions: ['.js', '.ts', '.tsx', '.jsx', 'png', 'jpg', 'jpeg']
   },
-  devServer: {
-    contentBase: 'dist',
-    port: 10001,
-    historyApiFallback: true,
-    host: '127.0.0.1',
-    hot: true,
-    publicPath: '/',
-    progress: true,
-    proxy: {
-      '/api': {
-        // target: 'http://api.520work.cn/',
-        target: 'http://192.168.50.183:21001/',
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  },
-  mode: 'development'
+  mode: 'production'
 }

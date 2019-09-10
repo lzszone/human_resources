@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent, useRef, MouseEvent, useContext } from 'react';
 import styled from 'styled-components/macro';
 import { RouteComponentProps } from 'react-router-dom';
+import axios from 'axios';
 
 import Section from '../../../components/section';
 import Container from '../../../components/container';
@@ -142,15 +143,18 @@ export default function Feedback(props: RouteComponentProps) {
         const es = evidences.concat(img);
         setEvidences(es);
         const { source, promise } = img.upload();
-        addSource(source);
+        // addSource(source);
         promise
             .then(() => setEvidences([...es]))
             .catch(e => {
-                setEvidences(evidences);
-                Modal.show({
-                    title: '出错啦: ',
-                    message: e.message
-                })
+                if(!axios.isCancel(e)) {
+
+                    setEvidences(evidences);
+                    Modal.show({
+                        title: '出错啦: ',
+                        message: e.message
+                    })
+                }
             })
     }
 

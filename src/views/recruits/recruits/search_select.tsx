@@ -6,7 +6,7 @@ import renderPage from '../../../components/render_page';
 import Mask from '../../../components/mask';
 
 const ContentContainer = styled.div`
-    width: ${218 / 360 * 100}%;
+    width: ${240 / 360 * 100}%;
     margin-left: 100%;
     transition: margin-left 0.3s;
     background-color: white;
@@ -52,6 +52,7 @@ const Title = styled.div`
 
 const SectionTitle = styled.div`
     margin: ${8 / 14}rem ${5 / 14}rem ${5 / 14}rem ${5 / 14}rem;
+    color: #333333;
 `;
 
 const FilterContainer = styled.div`
@@ -62,17 +63,26 @@ const Filter = styled.button<{selected: boolean}>`
     width: 100%;
     text-align: center;
     padding: 1rem 0;
-    color: ${({selected}) => selected? '#4A90E2': 'initial'};
+    color: ${({selected}) => selected? '#4A90E2': '#333333'};
     border: ${({selected}) => selected? '#4A90E2 solid 1px': 'none'};
     font-size: ${12 / 14}rem;
     border-radius: ${5 / 14}rem;
+	overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: #F0F0F0;
+    white-space: nowrap;
 `;
 
 const FilterWrapper = styled.div`
     display: inline-block;
-    width: 32%;
+    width: 33.333%;
     padding: ${2.5 / 14}rem;
     vertical-align: middle;
+    box-sizing: border-box;
+`;
+
+const Blank = styled.div`
+    height: ${56 / 14}rem;
 `;
 
 export default function SearchSelect({ goto, searchProps, onMaskClick, maskV, contentV, ...restProps }: Props) {
@@ -102,7 +112,7 @@ export default function SearchSelect({ goto, searchProps, onMaskClick, maskV, co
     }
 
     return renderPage(error, isLoading, data, (data) => <Mask onClick={onMaskClick} style={{zIndex: maskV? 999: -1}} >
-        <ContentContainer style={{marginLeft: contentV? `${(360 - 218) / 360 * 100}%`: '100%'}} onClick={e => e.stopPropagation()} >
+        <ContentContainer style={{marginLeft: contentV? `${(360 - 240) / 360 * 100}%`: '100%'}} onClick={e => e.stopPropagation()} >
             <Title>筛选</Title>
             {data.map(({ id, labelName, detailList }) =>
                 <div key={id}>
@@ -117,10 +127,9 @@ export default function SearchSelect({ goto, searchProps, onMaskClick, maskV, co
                     </FilterContainer>
                 </div>
             )}
-            <div>
-                <Reset onClick={handleResetClick}>重置</Reset>
-                <Ensure onClick={handleEnsureClick}>确定</Ensure>
-            </div>
+            <Blank/>
+            <Reset onClick={handleResetClick}>重置</Reset>
+            <Ensure onClick={handleEnsureClick}>确定</Ensure>
         </ContentContainer>
     </Mask>)
 }
