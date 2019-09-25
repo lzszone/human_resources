@@ -9,6 +9,23 @@ import I from '../../components/input';
 import Separator from '../../components/separator';
 import { FullWidthButton, LightButton } from '../../components/buttons';
 import Board from '../../components/board';
+import api from '../../services/api';
+
+function tc(): Promise<{ticket: string, randstr: string}> {
+    return new Promise((rs, rj) => {
+        // @ts-ignore
+        const t = new window.TencentCaptcha('2042364193', function(res: {ret: 0 | 2, ticket?: string, randstr?: string}) {
+            const {ret, ticket, randstr} = res;
+            if(ret === 2) {
+                t.hide();
+                return rj('user canceled')
+            }
+            rs({ticket, randstr});
+            return t.hide()
+        }, {bizState: {}});
+        t.show()
+    })
+}
 
 const GetCode = styled(LightButton)`
     float: right;
@@ -32,7 +49,12 @@ export default function Mobile() {
     const [passwordEnsured, setPasswordEnsured] = useState('');
 
     function getCode() {
-        return 
+        return tc()
+            .then(({randstr, ticket}) => {
+                api.customer.sendAuthorizationCode(mobile, ticket, randstr).promise
+                    .then(res => console.log(res))
+                    .catch(e => console.error(e))
+            })
     }
 
     function bindMobile() {

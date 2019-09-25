@@ -5,7 +5,7 @@ const ins = axios.create({
     baseURL: 'http://api.520work.cn/',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'X-Secret-Key': 'eyJraWQiOiIxMDAwMDAwMyIsInR5cCI6IkpXVCIsImFsZyI6IkhTMjU2In0.eyJsb2dpblR5cGUiOjIsImlzcyI6IjEzMDI4MTIwNzk3IiwiZXhwIjoxNTcxNjYwMTM5LCJpYXQiOjE1NjYxMzA1Mzl9.EnPXb3lRK4wDrHzGaO5yla5UjgNTnN4bXnu9FBK5SA0'
+        'X-Secret-Key': 'eyJraWQiOiIxMDAwMDAxNCIsInR5cCI6IkpXVCIsImFsZyI6IkhTMjU2In0.eyJsb2dpblR5cGUiOjIsImlzcyI6IjEzMDI4MTIwNzk3IiwiZXhwIjoxNTc0Nzg3ODU1LCJpYXQiOjE1NjkyNTQ2NTV9.OQMylB_bEYF2bES7Xf18anXrpkrIb9qqhL-duQ6zztA'
     }
 });
 
@@ -55,7 +55,6 @@ ins.interceptors.request.use(function (req) {
     if(!(req.data instanceof FormData)) {
         req.data = qs.stringify(req.data);
     }
-    console.log(req)
     return req
 });
 

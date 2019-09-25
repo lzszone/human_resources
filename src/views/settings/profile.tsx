@@ -52,7 +52,7 @@ export default function Profile() {
         sources.push(source);
         promise.then()
     }, []);
-    useEffect(function ())
+    // useEffect(function ())
     const [ modifiable, setModifiable ] = useState(false);
     const [ state, set] = useState<CustomerProfile>();
     
