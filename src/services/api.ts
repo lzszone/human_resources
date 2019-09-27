@@ -103,7 +103,7 @@ interface CustomResponse<T> {
     data: T
 };
 
-class CustomError extends Error {
+export class CustomError extends Error {
     public code: number;
     public message: string;
     constructor(code: number, message: string) {
@@ -161,6 +161,13 @@ export interface CustomerProfile extends SubmitProfileParam {
     education: string,
     perilRela: string
 };
+
+export type DictData = Array<{
+    id: number,//	字典数据ID
+    dictName: string,//	字典名称
+    dataKey: string,//	字典数据名称
+    dataValue: string, //	字典数据值
+}>;
 
 export interface PageParam {
     pageNum: number,
@@ -448,12 +455,7 @@ const api = {
         }
     },
     common: {
-        getDictData(dictName: string): UnwrappableResult<{
-            id: number,//	字典数据ID
-            dictName: string,//	字典名称
-            dataKey: string,//	字典数据名称
-            dataValue: string, //	字典数据值
-        }> {
+        getDictData(dictName: string): UnwrappableResult<DictData> {
             return axiosPost('/api/common/getDictData', { dictName })
         },
         uploadImage(args: FormData): UnwrappableResult<{

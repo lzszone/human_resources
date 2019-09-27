@@ -2,18 +2,18 @@ import { useState, useEffect, useReducer } from "react";
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 
-import { UnwrappableResult, ListData } from "../services/api";
+import { UnwrappableResult, ListData, CustomError } from "../services/api";
 
 export interface UseStaticApiResult<T> {
     data?: T,
     isLoading: boolean,
-    error?: Error,
+    error?: CustomError,
 };
 
 export interface UsePaginationApiResult<T> {
     data?: T,
     isLoading: boolean,
-    error?: Error,
+    error?: CustomError,
     loadNext?: () => void
 };
 
@@ -100,7 +100,7 @@ export default function useStaticApi<T, I extends Array<any>>(callFunction: (...
             .then(data => {
                 setState({ isLoading: false, data })
             })
-            .catch((e: Error) => {
+            .catch((e: CustomError) => {
                 if (axios.isCancel(e)) {
                     return
                 }
