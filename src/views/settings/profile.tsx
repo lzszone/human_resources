@@ -219,12 +219,12 @@ export default function Profile() {
         <Section title='紧急联系人' >
             <ModifiableRow modifiable={modifiable} label='姓名' >
                 <Text>{perilName}</Text>
-                <Input type="text" value={perilName} onChange={e => setProfile({...profile, perilName: e.target.value})} />
+                <Input type="text" value={perilName} onChange={e => setPerilName(e.target.value)} />
             </ModifiableRow>
             <Separator/>
             <ModifiableRow modifiable={modifiable} label='联系电话' >
                 <Text>{perilPhone}</Text>
-                <Input type="text" value={perilPhone} onChange={e => setProfile({...profile, perilPhone: e.target.value})} />
+                <Input type="text" value={perilPhone} onChange={e => setPerilPhone(e.target.value)} />
             </ModifiableRow>
             <Separator/>
             <ModifiableRow modifiable={modifiable} label='关系' >
