@@ -15,6 +15,7 @@ import ModalContext from '../../contexts/modal';
 import WarningSrc from '../../../assets/warning.png';
 import FetchingError from '../../components/fetching_error';
 import Loading from '../../components/loading';
+import Modal from '../../components/modal';
 
 const Text = styled.span`
     font-weight: bold;
@@ -39,36 +40,120 @@ function Info() {
     </Warning>
 }
 
-function Nation(props: {
+const AddSkillContainer = styled.div`
+    background-color: white;
+    position: absolute;
+    width: 60%;
+    height: 10rem;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 0.5rem;
+`;
+
+const AddSkillInput = styled.input`
+    width: 100%;
+    margin: auto;
+`;
+
+const BottomDiv = styled.div`
+    position: absolute;
+    bottom: 0;
+`;
+
+function Selector(props: {
     modifiable: boolean, 
-    nations: DictData, 
-    nationId: number, 
+    data: DictData, 
+    id: number, 
     onChange: (e: ChangeEvent<HTMLSelectElement>) => void,
     isLoading: boolean,
-    error: CustomError
+    error: CustomError,
+    label: string
 }) {
-    const {modifiable, nations, nationId, onChange, isLoading, error} = props;
+    const {modifiable, data, id, onChange, isLoading, error, label} = props;
     if(isLoading) {
         return <Loading/>
     }
     if(error) {
         return <FetchingError error={error} />
     }
-    return <ModifiableRow modifiable={modifiable} label='民族' >
-        <Text>{nationId === 0? 
+    return <ModifiableRow modifiable={modifiable} label={label} >
+        <Text>{id === 0? 
             '未设置':
-            nations.find(el => el.id === nationId).dataValue
+            data.find(el => el.id === id).dataValue
         }</Text>
         <select onChange={onChange} >
-            {nations.map(n => <option value={n.id} key={n.id} >{n.dataValue}</option>)}
+            {data.map(n => <option value={n.id} key={n.id} >{n.dataValue}</option>)}
         </select>
+    </ModifiableRow>
+}
+
+function Skill({children, modifiable}: {children: string, modifiable: boolean}) {
+    return <span>{children}</span>
+}
+
+function Skills(props: {
+    skills: Array<string>,
+    onChange: (d: Array<string>) => void,
+    modifiable: boolean
+}) {
+    const {skills, onChange, modifiable} = props;
+    const [typing, setTyping] = useState(false);
+    const [currentSkill, setCurrentSkill] = useState('');
+
+    function addSkill() {
+        setTyping(false);
+        onChange([...skills, currentSkill])
+        return setCurrentSkill('')
+    }
+
+    function handleAddClick() {
+        return setTyping(true)
+    }
+
+    function cancel() {
+        setCurrentSkill('')
+        return setTyping(false)
+    }
+
+    return <ModifiableRow label='个人技能' modifiable={modifiable} >
+        <div>{skills.map(s => <Skill modifiable={modifiable} key={s} >{s}</Skill>)}</div>
+        <div>
+            {typing?
+                <Modal>
+                    <AddSkillContainer>
+                        <div>
+                            <AddSkillInput type="text" onChange={e => setCurrentSkill(e.target.value)} placeholder='请输入技能名称' />
+                        </div>
+                        <BottomDiv>
+                            <button onClick={addSkill} >确定</button>
+                            <button onClick={cancel} >取消</button>
+                        </BottomDiv>
+                    </AddSkillContainer>
+                </Modal>:
+                null
+            }
+            {skills.map(s => <Skill modifiable={modifiable} key={s} >{s}</Skill>)}
+            <button onClick={handleAddClick} >+</button>
+        </div>
     </ModifiableRow>
 }
 
 export default function Profile() {
     useTitle('我的资料');
-    const sources: Array<CancelTokenSource> = [];
-    // useEffect(function ())
+    const Modal = useContext(ModalContext);
+
+    // for cancellation
+    const sources: Array<CancelTokenSource> = []; 
+
+    // initial profile fetching
+    const [ fetchingProfileError, setFetchingProfileError ] = useState(null); 
+    const [ isProfileLoading, setProfileLoading ] = useState(true); 
+
+    // current user input state
     const [ modifiable, setModifiable ] = useState(false);
     const [ realName, setRealName ] = useState('');
     const [ birthDate, setBirthDate ] = useState('');
@@ -79,10 +164,10 @@ export default function Profile() {
     const [ nationId, setNationId ] = useState(0);
     const [ educationId, setEducationId ] = useState(0);
     const [ sex, setSex ] = useState<1|2>(1);
-    const [ fetchingProfileError, setFetchingProfileError ] = useState(null);
-    const [ isProfileLoading, setProfileLoading ] = useState(true);
     const [ skills, setSkills ] = useState<Array<string>>([]);
     const [ photos, setPhotos ] = useState<Array<string>>([]);
+
+    // selector data fetching
     const {
         data: nations, 
         error: fetchingNationsError, 
@@ -98,8 +183,8 @@ export default function Profile() {
         error: fetchingEducationsError, 
         isLoading: isEducationsLoading
     } = useStaticApi(api.common.getDictData, 'education');
-    const Modal = useContext(ModalContext);
 
+    // cancellation, and set profile data with server response.
     useEffect(function () {
         const { promise, source } = api.customer.getProfile();
         sources.push(source);
@@ -117,13 +202,15 @@ export default function Profile() {
             setPhotos(data.photos);
             setSkills(data.skills)
         }).catch(e => {
-            if(e.code !== -2001) {// 新用户还没有资料, 设置默认值, 正常渲染
-                setFetchingProfileError(e)
+            if(e.code === -2001) { // 新用户还没有资料, 设置默认值, 正常渲染
+                return setProfileLoading(false);
             }
+            // 出错了
+            return setFetchingProfileError(e)
         })
-        return sources.forEach(s => s.cancel())
+        // cancellation
+        return () => sources.forEach(s => s.cancel())
     }, []);
-    window["saveProfile"] = saveProfile;
 
     if(fetchingProfileError) { 
         return <FetchingError error={fetchingProfileError} />
@@ -151,7 +238,7 @@ export default function Profile() {
         promise.then(console.log).catch((e: Error) => Modal.show({
             title: '出错啦',
             message: e.message
-        }));
+        }));    
         sources.push(source)
     }
 
@@ -186,25 +273,27 @@ export default function Profile() {
                 <Input type="text" value={birthDate} />
             </ModifiableRow> */}
             <Separator/>
-            <Nation 
+            <Selector 
                 modifiable={modifiable} error={fetchingNationsError} 
-                nations={nations} nationId={nationId} 
+                data={nations} id={nationId} 
                 onChange={e => setNationId(Number(e.target.value))} 
-                isLoading={isNationsLoading}
+                isLoading={isNationsLoading} label='民族'
             />
             <Separator/>
             <ModifiableRow modifiable={modifiable} label='籍贯' >
                 <Text>{nativePlace}</Text>
                 <Input type="text" value={nativePlace} onChange={e => setNativePlace(e.target.value)} />
-            </ModifiableRow>
+            </ModifiableRow> 
         </Section>
 
         <Section title='技能资质' >
-            <ModifiableRow modifiable={modifiable} label='学历' >
-                <Text>{education}</Text>
-                <Input type="text" value={education} onChange={e => setProfile({...profile, education: e.target.value})} />
-            </ModifiableRow>
+            <Selector modifiable={modifiable} label='学历' data={educations}
+                id={educationId} error={fetchingEducationsError}
+                onChange={e => setEducationId(Number(e.target.value))}
+                isLoading={isEducationsLoading}
+            />
             <Separator/>
+            <Skills skills={skills} onChange={skills => setSkills(skills)} modifiable={modifiable} />
             {/* <ModifiableRow modifiable={modifiable} label='个人技能' >
                 <Text>{skills}</Text>
                 <Input type="text" value={skills} />
@@ -227,10 +316,11 @@ export default function Profile() {
                 <Input type="text" value={perilPhone} onChange={e => setPerilPhone(e.target.value)} />
             </ModifiableRow>
             <Separator/>
-            <ModifiableRow modifiable={modifiable} label='关系' >
-                <Text>{perilRela}</Text>
-                <Input type="text" value={perilRela} onChange={e => setProfile({...profile, perilRela: e.target.value})} />
-            </ModifiableRow>
+            <Selector modifiable={modifiable} label='关系' data={perilRelas}
+                id={perilRelaId} error={fetchingPerilRelasError}
+                onChange={e => setPerilRelaId(Number(e.target.value))}
+                isLoading={isPerilRelasLoading} 
+            />
         </Section>
 
         <Info/>

@@ -1,4 +1,4 @@
-import React, { useState, MouseEvent } from 'react';
+import React, { useState, MouseEvent, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Redirect } from 'react-router-dom';
 import styled from 'styled-components/macro';
@@ -36,19 +36,24 @@ function App() {
     }
 
     const [info, setInfo] = useState<Info | null>(null);
-    let cb: () => any;
+    const callbackRef = useRef(null);
     function show(msg: Info, callback?: () => any) {
-        cb = callback;
+        callbackRef.current = callback;
         return setInfo(msg)
     }
     function hide() {
         setInfo(null);
-        if(cb) {
-            delay(cb, 100)
+        if(callbackRef.current) {
+            delay(() => {
+                callbackRef.current();
+                callbackRef.current = null
+            }, 100)
         }
     }
     function closeModal(e: MouseEvent<HTMLElement>) {
-        hide()
+        if(e.target === e.currentTarget) {
+            return hide()
+        }
     }
 
     return <BrowserRouter>

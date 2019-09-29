@@ -7,6 +7,8 @@ const Mask = styled.div`
     width: 100%;
     z-index: 999;
     overflow: hidden;
+    top: 0;
+    left: 0;
     cursor: pointer;
 `;
 
