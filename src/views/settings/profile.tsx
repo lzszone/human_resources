@@ -9,13 +9,16 @@ import Input from '../../components/input';
 import Container from '../../components/container';
 import Section from '../../components/section';
 import ModifiableRow from '../../components/modifiable_row';
-import {FullWidthButton} from '../../components/buttons';
+import Button, {FullWidthButton} from '../../components/buttons';
 import Separator from '../../components/separator';
 import ModalContext from '../../contexts/modal';
 import WarningSrc from '../../../assets/warning.png';
 import FetchingError from '../../components/fetching_error';
 import Loading from '../../components/loading';
 import Modal from '../../components/modal';
+import theme from '../../components/theme';
+import addSrc from '../../../assets/add.png';
+import deleteSrc from '../../../assets/delete.png';
 
 const Text = styled.span`
     font-weight: bold;
@@ -44,7 +47,7 @@ const AddSkillContainer = styled.div`
     background-color: white;
     position: absolute;
     width: 60%;
-    height: 10rem;
+    height: 5rem;
     top: 0;
     right: 0;
     bottom: 0;
@@ -52,16 +55,68 @@ const AddSkillContainer = styled.div`
     margin: auto;
     padding: 2rem;
     border-radius: 0.5rem;
+    overflow: hidden;
 `;
 
 const AddSkillInput = styled.input`
-    width: 100%;
+    width: fill-available;
     margin: auto;
 `;
 
 const BottomDiv = styled.div`
     position: absolute;
     bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3rem;
+    width: fill-available;
+`;
+
+const B = styled(Button)`
+    display: block;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+    font-weight: bold;
+    position: absolute;
+    border-radius: 0;
+`;
+
+const EnsureButton = styled(B)`
+    left: 0;
+`;
+
+const CancelButton = styled(B)`
+    background-color: silver;
+    right: 0;
+`;
+
+const SkillButton = styled.button`
+    height: ${20 / 14}rem;
+    line-height: ${20 / 14}rem;
+    padding: 0 ${10 / 14}rem;
+    color: ${theme.blue};
+    background-color: rgba(240, 240, 240, 1);
+    border-radius: ${5 / 14}rem;
+    margin: ${4 / 14}rem;
+    vertical-align: middle;
+    position: relative;
+`;
+
+const AddImg = styled.img`
+    height: ${16 / 14}rem;
+    margin: ${2 / 14}rem auto auto auto;
+`;
+
+const Delete = styled.img`
+    cursor: pointer;
+    border-radius: 50%;
+    height: ${12 / 14}rem;
+    width: ${12 / 14}rem;
+    position: absolute;
+    top: -${6 / 14}rem;
+    right: -${6 / 14}rem;
+    background-color: #999999;
 `;
 
 function Selector(props: {
@@ -91,8 +146,14 @@ function Selector(props: {
     </ModifiableRow>
 }
 
-function Skill({children, modifiable}: {children: string, modifiable: boolean}) {
-    return <span>{children}</span>
+function Skill({children, modifiable, onClick}: {children: string, modifiable: boolean, onClick: () => void}) {
+    return <SkillButton>
+        {children}
+        {modifiable? 
+            <Delete src={deleteSrc} onClick={onClick} />:
+            null
+        }
+    </SkillButton>
 }
 
 function Skills(props: {
@@ -119,8 +180,13 @@ function Skills(props: {
         return setTyping(false)
     }
 
+    function handleRemove(id: number) {
+        skills.splice(id, 1);
+        onChange([...skills])
+    }
+
     return <ModifiableRow label='个人技能' modifiable={modifiable} >
-        <div>{skills.map(s => <Skill modifiable={modifiable} key={s} >{s}</Skill>)}</div>
+        <div>{skills.map((s, i) => <Skill modifiable={modifiable} key={s} onClick={() => handleRemove(i)} >{s}</Skill>)}</div>
         <div>
             {typing?
                 <Modal>
@@ -129,15 +195,15 @@ function Skills(props: {
                             <AddSkillInput type="text" onChange={e => setCurrentSkill(e.target.value)} placeholder='请输入技能名称' />
                         </div>
                         <BottomDiv>
-                            <button onClick={addSkill} >确定</button>
-                            <button onClick={cancel} >取消</button>
+                            <EnsureButton onClick={addSkill} >确定</EnsureButton>
+                            <CancelButton onClick={cancel} >取消</CancelButton>
                         </BottomDiv>
                     </AddSkillContainer>
                 </Modal>:
                 null
             }
-            {skills.map(s => <Skill modifiable={modifiable} key={s} >{s}</Skill>)}
-            <button onClick={handleAddClick} >+</button>
+            {skills.map((s, i) => <Skill modifiable={modifiable} key={s} onClick={() => handleRemove(i)} >{s}</Skill>)}
+            <SkillButton onClick={handleAddClick} ><AddImg src={addSrc} /></SkillButton>
         </div>
     </ModifiableRow>
 }
