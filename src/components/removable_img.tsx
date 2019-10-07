@@ -2,6 +2,8 @@ import React, { PropsWithChildren } from 'react';
 import styled from 'styled-components/macro';
 
 import del from '../../assets/delete.png';
+import PreviewImage from './abs_center_img';
+import PreviewContainer from './square_container';
 
 const percentage = 16 / 14;
 const Remove = styled.button`
@@ -14,25 +16,6 @@ const Remove = styled.button`
     margin-right: ${4 / 14}rem;
     float: right;
     position: relative;
-`;
-
-const PreviewContainer = styled.div`
-    overflow: hidden;
-    width: 100%;
-    position: relative;
-    height: 0;
-    background-color: white;
-    padding-bottom: 100%;
-    border-radius: ${8 / 14}rem;
-    position: relative;
-`;
-
-const PreviewImage = styled.img`
-    position: absolute;
-    display: block;
-    width: 100%;
-    bottom: 0;
-    margin: auto;
 `;
 
 const Img = styled.img`

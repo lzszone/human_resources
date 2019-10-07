@@ -24,14 +24,20 @@ const Container = styled.div`
     margin: 1.8rem 0;
 `;
 
+const C = styled.div`
+    height: 0;
+    padding-bottom: ${150 / 360 * 100}%;
+    width: 100%;
+`;
+
 export default function Banners(props: UseStaticApiResult<Array<Banner>>) {
     const {error, data, isLoading} = props;
 
     return renderPage(error, isLoading, data, (data) => <Container>
-        <Slider {...settings} >
-            {data.map(d => <div key={d.back} >
+        <Slider {...settings} arrows={false} >
+            {data.map(d => <C key={d.back} >
                 <Img src={d.back} />
-            </div>)}
+            </C>)}
         </Slider>
     </Container>)
 }

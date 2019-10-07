@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components/macro';
 
 import useTitle from "../../hooks/use_title";
@@ -9,7 +9,8 @@ import I from '../../components/input';
 import Separator from '../../components/separator';
 import { FullWidthButton, LightButton } from '../../components/buttons';
 import Board from '../../components/board';
-import api from '../../services/api';
+import api, {LoginType} from '../../services/api';
+import ModalContext from '../../contexts/modal';
 
 function tc(): Promise<{ticket: string, randstr: string}> {
     return new Promise((rs, rj) => {
@@ -47,19 +48,34 @@ export default function Mobile() {
     const [code, setCode] = useState('');
     const [password, setPassword] = useState('');
     const [passwordEnsured, setPasswordEnsured] = useState('');
+    const [requestId, setRequestId] = useState('');
+
+    const Modal = useContext(ModalContext);
 
     function getCode() {
         return tc()
             .then(({randstr, ticket}) => {
-                api.customer.sendAuthorizationCode(mobile, ticket, randstr).promise
-                    .then(res => console.log(res))
-                    .catch(e => console.error(e))
+                return api.customer.sendAuthorizationCode(mobile, ticket, randstr).promise
+                    .then(res => {
+                        setRequestId(res);
+                        Modal.show({title: '', message: '验证码已发送到手机, 请注意查收'})
+                    })
+                    .catch(e => Modal.show({title: '出错啦', message: e.message}))
             })
     }
 
     function bindMobile() {
-        return 
+        if(password !== passwordEnsured) {
+            return Modal.show({title: '出错啦', message: '两次输入的密码不一致'})
+        }
+        return api.customer.login({loginType: LoginType.wechat}).unwrap()
+            .then(res => {
+                return api.customer.setLoginPass(code, requestId, password, mobile).unwrap()
+            })
+            .then(() => Modal.show({title: '操作成功', message: '已绑定'}))
+            .catch(e => Modal.show({title: '出错啦', message: e.message}))
     }
+
     return <Container>
         <Board>
             <Row>

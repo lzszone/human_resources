@@ -10,7 +10,7 @@ import RowHeader from '../../../components/row_header';
 import RemovableImg from '../../../components/removable_img';
 import AddImg from '../../../../assets/add.png';
 import { FullWidthButton } from '../../../components/buttons';
-import api from '../../../services/api';
+import api, {ComplaintUploader} from '../../../services/api';
 import useTitle from '../../../hooks/use_title';
 import Link from '../../../components/link';
 import theme from '../../../components/theme';
@@ -88,58 +88,24 @@ const Select = styled.select`
     margin-top: -0.3rem;
 `;
 
-class IMG {
-    state: 'uploading' | 'failed' | 'uploaded';
-    fileSuffix: string;
-    previewPath: string;
-    savePath: string;
-    fileMd5: string;
-    file: File;
-
-    constructor(file: File) {
-        this.file = file;
-        this.state = 'uploading';
-    }
-
-    upload() {
-        const fd = new FormData();
-        fd.append('file', this.file);
-        fd.append('serviceId', '4');
-        const result = api.common.uploadImage(fd);
-        result.promise
-            .then(({ fileSuffix, previewPath, savePath, fileMd5 }) => {
-                this.fileSuffix = fileSuffix;
-                this.fileMd5 = fileMd5;
-                this.savePath = savePath;
-                this.previewPath = previewPath;
-                this.state = 'uploaded'
-            })
-            .catch((e: Error) => {
-                this.state = 'failed';
-                throw e
-            });
-        return result
-    }
-}
-
 export default function Feedback(props: RouteComponentProps) {
     const { match: { path } } = props;
     useTitle('意见反馈');
     const uploaderRef = useRef<HTMLInputElement>(null);
     const [type, setType] = useState(0);
     const [content, setContent] = useState('');
-    const [evidences, setEvidences] = useState<Array<IMG>>([]);
+    const [evidences, setEvidences] = useState<Array<ComplaintUploader>>([]);
     const [complaintTypeId, setCompaintTypeId] = useState<string>(undefined);
     const Modal = useContext(ModalContext);
     const Router = useContext(RouterContext);
     const addSource = useAutoCancel();
 
-    function del(img: IMG) {
+    function del(img: ComplaintUploader) {
         setEvidences(evidences.filter(e => e !== img))
     }
 
     function add(file: File) {
-        const img = new IMG(file);
+        const img = new ComplaintUploader(file);
         const es = evidences.concat(img);
         setEvidences(es);
         const { source, promise } = img.upload();
@@ -161,9 +127,9 @@ export default function Feedback(props: RouteComponentProps) {
     function submit() {
         const hasUploading = evidences.find(e => e.state === 'uploading');
         if(hasUploading) {
-            return alert('还有正在上传的图片, 请等待上传完成或删除图片后再提交')
+            return Modal.show({title: '出错啦', message: '还有正在上传的图片, 请等待上传完成或删除图片后再提交'})
         }
-        const es = evidences.map(e => e.savePath);
+        const es = evidences.map(e => e.previewPath);
         return api.complaint.submit({
             type, 
             content,
@@ -215,7 +181,7 @@ export default function Feedback(props: RouteComponentProps) {
                 <Section title='截图(选填)' >
                     <Wrapper2>
                         {evidences.map(img => 
-                            <Wrapper key={img.savePath}><RemovableImg url={img.savePath} isUploading={img.state === 'uploading'} onDelete={e => del(img)} /></Wrapper> 
+                            <Wrapper key={img.previewPath}><RemovableImg url={img.previewPath} isUploading={img.state === 'uploading'} onDelete={e => del(img)} /></Wrapper> 
                         )}
                         <Wrapper><AddButton onClick={e => uploaderRef.current.click()} /></Wrapper> 
                     </Wrapper2>

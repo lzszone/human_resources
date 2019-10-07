@@ -11,6 +11,7 @@ module.exports = {
     rules: [{
       test: /\.(j|t)sx?/,
       loader: 'babel-loader',
+      exclude: /node_modules/,
       options: {
         presets: [
           '@babel/preset-typescript',
@@ -40,13 +41,13 @@ module.exports = {
     }]
   },
   resolve: {
-    extensions: ['.js', '.ts', '.tsx', '.jsx', 'png', 'jpg', 'jpeg']
+    extensions: ['.js', '.ts', '.tsx', '.jsx', '.png', '.jpg', '.jpeg']
   },
   devServer: {
     contentBase: 'dist',
     port: 10001,
     historyApiFallback: true,
-    host: '127.0.0.1',
+    host: '0.0.0.0',
     hot: true,
     publicPath: '/',
     progress: true,

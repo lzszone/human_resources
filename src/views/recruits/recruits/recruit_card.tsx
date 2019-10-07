@@ -8,7 +8,6 @@ import ThumbSrc from '../../../../assets/thumb.png';
 import RouterContext from '../../../contexts/router';
 import Link from '../../../components/link';
 
-// <Link to={`${match.path}/${r.id}`} >{r.title}</Link>
 const Card = styled(Board)`
     border-radius: ${8 / 14}rem;
     margin: ${4 / 14}rem 0;

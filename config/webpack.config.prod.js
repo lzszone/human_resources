@@ -35,12 +35,12 @@ module.exports = {
         loader: 'css-loader'
       }]
     }, {
-      test: /\.(png|jpg|jpeg|)$/,
+      test: /\.(png|jpg|jpeg|ttf|woff|svg|gif|eot)$/,
       loader: 'file-loader'
     }]
   },
   resolve: {
-    extensions: ['.js', '.ts', '.tsx', '.jsx', 'png', 'jpg', 'jpeg']
+    extensions: ['.js', '.ts', '.tsx', '.jsx', '.png', '.jpg', '.jpeg']
   },
   mode: 'production'
 }

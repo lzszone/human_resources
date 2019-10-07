@@ -5,8 +5,9 @@ const ins = axios.create({
     baseURL: 'http://api.520work.cn/',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'X-Secret-Key': 'eyJraWQiOiIxMDAwMDAxNCIsInR5cCI6IkpXVCIsImFsZyI6IkhTMjU2In0.eyJsb2dpblR5cGUiOjIsImlzcyI6IjEzMDI4MTIwNzk3IiwiZXhwIjoxNTc0Nzg3ODU1LCJpYXQiOjE1NjkyNTQ2NTV9.OQMylB_bEYF2bES7Xf18anXrpkrIb9qqhL-duQ6zztA'
-    }
+        // 'X-Secret-Key': 'eyJraWQiOiIxMDAwMDAxNCIsInR5cCI6IkpXVCIsImFsZyI6IkhTMjU2In0.eyJsb2dpblR5cGUiOjIsImlzcyI6IjEzMDI4MTIwNzk3IiwiZXhwIjoxNTc0Nzg3ODU1LCJpYXQiOjE1NjkyNTQ2NTV9.OQMylB_bEYF2bES7Xf18anXrpkrIb9qqhL-duQ6zztA'
+    },
+    withCredentials: true
 });
 
 function setHeaders(obj: any) {
@@ -28,10 +29,6 @@ export class UnwrappableResult<T> {
 }
 
 function axiosPost(url: string, postBody: any = {}, options: AxiosRequestConfig = {}) {
-    const profile = JSON.parse(localStorage.getItem('profile'));
-    if(profile) {
-        options.headers['X-Secret-Key'] = profile.token
-    }
     const source = axios.CancelToken.source();
     options.cancelToken = source.token;
     const promise: Promise<any> = ins.post(url, postBody, options);
@@ -113,7 +110,7 @@ export class CustomError extends Error {
     }
 };
 
-enum LoginType {
+export enum LoginType {
     message = 1,
     password = 2,
     wechat = 3
@@ -365,8 +362,10 @@ const api = {
         getProfile(): UnwrappableResult<CustomerProfile> {
             return axiosPost('/api/customer/getProfile')
         },
-        setLoginPass(code: string, requestId: string, newPass: string): UnwrappableResult<void> {
-            return axiosPost('/api/customer/setLoginPass', { code, requestId, newPass })
+        setLoginPass(code: string, requestId: string, newPass: string, mobile: string): UnwrappableResult<void> {
+            const reqBody = { code, requestId, newPass, mobile };
+            console.log(reqBody)
+            return axiosPost('/api/customer/setLoginPass', reqBody)
         },
         message: {
             list(p: PageParam): UnwrappableResult<ListData<{
@@ -530,8 +529,8 @@ const api = {
         getWxConfigInfo(wxKey: string): UnwrappableResult<{ appId: string, state: string }> {
             return axiosPost('/api/wx/getWxConfigInfo', { wxKey })
         },
-        auth(code: string, state: string, wxKey: string): UnwrappableResult<WXLoginResult> {
-            return axiosPost('/api/wx/auth', { code, state, wxKey })
+        auth(code: string, state: string, wxKey: string, config?: AxiosRequestConfig): UnwrappableResult<WXLoginResult> {
+            return axiosPost('/api/wx/auth', { code, state, wxKey }, config)
         }
     },
     recommend: {
@@ -549,5 +548,75 @@ const api = {
         }
     }
 };
+
+class IMGUploader {
+    state: 'uploading' | 'failed' | 'uploaded';
+    fileSuffix?: string;
+    previewPath?: string;
+    savePath?: string;
+    fileMd5?: string;
+    file?: File;
+    type: 1 | 2 | 3 | 4 //业务ID(1: 上传用户头像, 2: 上传个人信息照片, 3: 上传Banner图片, 4: 意见反馈图片)
+
+    constructor(file: File) {
+        this.file = file;
+        this.state = 'uploading';
+    }
+
+    upload() {
+        if(!this.type) {
+            throw 'Not Implemented.'
+        }
+        if(this.state !== 'uploading') {
+            throw 'Fail To Upload.'
+        }
+        const fd = new FormData();
+        fd.append('file', this.file);
+        fd.append('serviceId', this.type.toString());
+        const result = api.common.uploadImage(fd);
+        result.promise
+            .then((res) => {
+                const { fileSuffix, previewPath, savePath, fileMd5 } = res;
+                this.fileSuffix = fileSuffix;
+                this.fileMd5 = fileMd5;
+                this.savePath = savePath;
+                this.previewPath = previewPath;
+                this.state = 'uploaded'
+            })
+            .catch((e: Error) => {
+                this.state = 'failed';
+                throw e
+            });
+        return result
+    }
+}
+
+export class AvatarUploader extends IMGUploader {
+    constructor(f: File) {
+        super(f);
+        this.type = 1
+    }
+}
+
+export class ProfileUploader extends IMGUploader {
+    constructor(f: File) {
+        super(f);
+        this.type = 2
+    }
+}
+
+export class BannerUploader extends IMGUploader {
+    constructor(f: File) {
+        super(f);
+        this.type = 3
+    }
+}
+
+export class ComplaintUploader extends IMGUploader {
+    constructor(f: File) {
+        super(f);
+        this.type = 4
+    }
+}
 
 export default api;

@@ -3,13 +3,12 @@ import { RouteComponentProps } from 'react-router';
 import styled from 'styled-components/macro';
 import { CancelTokenSource } from 'axios';
 
-import useStaticApi from '../../hooks/use_api';
-import api from '../../services/api';
-import renderPage from '../../components/render_page';
-import RecruitCard from './recruits/recruit_card';
-import Banners from './recruits/banners';
-import Container from '../../components/container';
-import ModalContext from '../../contexts/modal';
+import useStaticApi from '../../../hooks/use_api';
+import api from '../../../services/api';
+import renderPage from '../../../components/render_page';
+import RecruitCard from '../recruits/recruit_card';
+import Banners from '../recruits/banners';
+import Container from '../../../components/container';
 
 const Inner = styled.div`
     background-color: white;
@@ -58,14 +57,9 @@ export default function Detail(props: RouteComponentProps<{ id: string }>) {
     useEffect(function () {
         return () => sources.forEach(s => s.cancel())
     }, []);
-    const Modal = useContext(ModalContext);
 
     function handleSignup(id: number) {
-        const { promise, source } = api.recruit.signup(id);
-        sources.push(source);
-        promise
-            .then(() => Modal.show({title: '结果', message: '报名成功'}, () => history.push('job_signups')))
-            .catch(e => Modal.show({title: '出错啦', message: e.message}))
+        history.push(`${id}/signup`)
     }
     
     return renderPage(error, isLoading, data, data => <Container> 

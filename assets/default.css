@@ -9,3 +9,18 @@ button {
     border: none;
     padding: 0;
 }
+
+input {
+    padding-left: 0.4rem;
+}
+
+select {
+    appearance: none;
+    border: none;
+    background-color: white;
+}
+
+.dp-rewrite > div {
+    border: none;
+    background-color: white;
+}

@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext, ChangeEvent } from 'react';
+import React, { useState, useEffect, useContext, ChangeEvent, useRef } from 'react';
 import styled from 'styled-components/macro';
-import {CancelTokenSource} from 'axios';
+import axios, {CancelTokenSource} from 'axios';
 
 import useTitle from '../../hooks/use_title';
-import useStaticApi, { UseStaticApiResult } from '../../hooks/use_api';
-import api, { CustomerProfile, DictData, CustomError } from '../../services/api';
+import api, { CustomerProfile, DictData, CustomError, ProfileUploader } from '../../services/api';
 import Input from '../../components/input';
 import Container from '../../components/container';
 import Section from '../../components/section';
@@ -12,36 +11,24 @@ import ModifiableRow from '../../components/modifiable_row';
 import Button, {FullWidthButton} from '../../components/buttons';
 import Separator from '../../components/separator';
 import ModalContext from '../../contexts/modal';
-import WarningSrc from '../../../assets/warning.png';
 import FetchingError from '../../components/fetching_error';
 import Loading from '../../components/loading';
 import Modal from '../../components/modal';
 import theme from '../../components/theme';
 import addSrc from '../../../assets/add.png';
 import deleteSrc from '../../../assets/delete.png';
-
-const Text = styled.span`
-    font-weight: bold;
-    font-size: ${15 / 14}rem;
-`;
-
-const Warning = styled.div`
-    padding: ${11 / 14}rem ${8 / 14}rem ${26 / 14}rem ${8 / 14}rem;
-    color: #666;
-    font-size: ${12 / 14}rem;
-    vertical-align: middle;
-`;
-
-const Img = styled.img`
-    width: ${12 / 14}rem;
-    vertical-align: middle;
-`;
-
-function Info() {
-    return <Warning>
-        <Img src={WarningSrc} />更加完善的资料能够使报名通过的几率更大
-    </Warning>
-}
+import DatePicker from 'react-date-picker';
+import moment from 'moment';
+import Row from '../../components/row';
+import RowHeader from '../../components/row_header';
+import RemovableImg from '../../components/removable_img';
+import Info from '../../components/info';
+import Text from '../../components/row_text';
+import PaddingWrapper from '../../components/p_33_padding_wrapper';
+import ElementWrapper from '../../components/p_33_element_wrapper';
+import PreviewImage from '../../components/preview_image';
+import TagContainer from '../../components/tag_container';
+import SkillButton from '../../components/tag';
 
 const AddSkillContainer = styled.div`
     background-color: white;
@@ -61,6 +48,9 @@ const AddSkillContainer = styled.div`
 const AddSkillInput = styled.input`
     width: fill-available;
     margin: auto;
+    line-height: 2rem;
+    border-radius: 0.3rem;
+    border: 1px solid grey;
 `;
 
 const BottomDiv = styled.div`
@@ -91,18 +81,6 @@ const CancelButton = styled(B)`
     right: 0;
 `;
 
-const SkillButton = styled.button`
-    height: ${20 / 14}rem;
-    line-height: ${20 / 14}rem;
-    padding: 0 ${10 / 14}rem;
-    color: ${theme.blue};
-    background-color: rgba(240, 240, 240, 1);
-    border-radius: ${5 / 14}rem;
-    margin: ${4 / 14}rem;
-    vertical-align: middle;
-    position: relative;
-`;
-
 const AddImg = styled.img`
     height: ${16 / 14}rem;
     margin: ${2 / 14}rem auto auto auto;
@@ -117,6 +95,19 @@ const Delete = styled.img`
     top: -${6 / 14}rem;
     right: -${6 / 14}rem;
     background-color: #999999;
+`;
+
+const AddButton = styled.button`
+    display: block;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    background-image: url("${addSrc}");
+    background-repeat: no-repeat;
+    background-size: 50%;
+    background-position: center;
+    background-color: ${theme.grey};
+    border-radius: ${8 / 14}rem;
 `;
 
 function Selector(props: {
@@ -140,8 +131,8 @@ function Selector(props: {
             '未设置':
             data.find(el => el.id === id).dataValue
         }</Text>
-        <select onChange={onChange} >
-            {data.map(n => <option value={n.id} key={n.id} >{n.dataValue}</option>)}
+        <select onChange={onChange} value={id.toString()} >
+            {data.map((n, i) => <option value={n.id} key={n.id} defaultChecked={i === 0} >{n.dataValue}</option>)}
         </select>
     </ModifiableRow>
 }
@@ -186,8 +177,8 @@ function Skills(props: {
     }
 
     return <ModifiableRow label='个人技能' modifiable={modifiable} >
-        <div>{skills.map((s, i) => <Skill modifiable={modifiable} key={s} onClick={() => handleRemove(i)} >{s}</Skill>)}</div>
-        <div>
+        <TagContainer>{skills.map((s, i) => <Skill modifiable={modifiable} key={s} onClick={() => handleRemove(i)} >{s}</Skill>)}</TagContainer>
+        <TagContainer>
             {typing?
                 <Modal>
                     <AddSkillContainer>
@@ -204,7 +195,7 @@ function Skills(props: {
             }
             {skills.map((s, i) => <Skill modifiable={modifiable} key={s} onClick={() => handleRemove(i)} >{s}</Skill>)}
             <SkillButton onClick={handleAddClick} ><AddImg src={addSrc} /></SkillButton>
-        </div>
+        </TagContainer>
     </ModifiableRow>
 }
 
@@ -218,11 +209,20 @@ export default function Profile() {
     // initial profile fetching
     const [ fetchingProfileError, setFetchingProfileError ] = useState(null); 
     const [ isProfileLoading, setProfileLoading ] = useState(true); 
+    const [ nations, setNations ] = useState<DictData>([]);
+    const [ isNationsLoading, setIsNationsLoading ] = useState(true);
+    const [ fetchingNationsError, setFetchingNationsError ] = useState(null);
+    const [ perilRelas, setPerilRelas ] = useState<DictData>([]);
+    const [ isPerilRelasLoading, setIsPerilRelasLoading ] = useState(true);
+    const [ fetchingPerilRelasError, setFetchingPerilRelasError ] = useState(null);
+    const [ educations, setEducations ] = useState<DictData>([]);
+    const [ isEducationsLoading, setIsEducationsLoading ] = useState(true);
+    const [ fetchingEducationsError, setFetchingEducationsError ] = useState(null);
 
     // current user input state
     const [ modifiable, setModifiable ] = useState(false);
     const [ realName, setRealName ] = useState('');
-    const [ birthDate, setBirthDate ] = useState('');
+    const [ birthDate, setBirthDate ] = useState(new Date());
     const [ nativePlace, setNativePlace ] = useState('');
     const [ perilPhone, setPerilPhone ] = useState('');
     const [ perilName, setPerilName ] = useState('');
@@ -231,24 +231,10 @@ export default function Profile() {
     const [ educationId, setEducationId ] = useState(0);
     const [ sex, setSex ] = useState<1|2>(1);
     const [ skills, setSkills ] = useState<Array<string>>([]);
-    const [ photos, setPhotos ] = useState<Array<string>>([]);
-
-    // selector data fetching
-    const {
-        data: nations, 
-        error: fetchingNationsError, 
-        isLoading: isNationsLoading
-    } = useStaticApi(api.common.getDictData, 'nation');
-    const {
-        data: perilRelas, 
-        error: fetchingPerilRelasError, 
-        isLoading: isPerilRelasLoading
-    } = useStaticApi(api.common.getDictData, 'perilRela');
-    const {
-        data: educations, 
-        error: fetchingEducationsError, 
-        isLoading: isEducationsLoading
-    } = useStaticApi(api.common.getDictData, 'education');
+    const [ photos, setPhotos ] = useState<Array<ProfileUploader>>([]);
+    
+    // uploader
+    const uploaderRef = useRef<HTMLInputElement>(null);
 
     // cancellation, and set profile data with server response.
     useEffect(function () {
@@ -256,7 +242,13 @@ export default function Profile() {
         sources.push(source);
         promise.then(data => {
             setProfileLoading(false);
-            setBirthDate(data.birthDate);
+            const ps = data.photos? data.photos.map(src => {
+                const pu = new ProfileUploader(null);
+                pu.savePath = pu.previewPath = src;
+                pu.state = 'uploaded';
+                return pu
+            }): [];
+            setBirthDate(data.birthDate === ''? moment().toDate(): moment(data.birthDate).toDate());
             setEducationId(data.educationId);
             setNationId(data.nationId);
             setRealName(data.realName);
@@ -265,15 +257,46 @@ export default function Profile() {
             setPerilRelaId(data.perilRelaId);
             setNativePlace(data.nativePlace);
             setSex(data.sex);
-            setPhotos(data.photos);
-            setSkills(data.skills)
+            setPhotos(ps);
+            setSkills(data.skills || [])
         }).catch(e => {
             if(e.code === -2001) { // 新用户还没有资料, 设置默认值, 正常渲染
                 return setProfileLoading(false);
             }
             // 出错了
             return setFetchingProfileError(e)
-        })
+        });
+
+        const n = api.common.getDictData('nation');
+        sources.push(n.source);
+        n.promise
+            .then(d => {
+                setNations(d);
+                setIsNationsLoading(false);
+                return setNationId(d[0].id)
+            })
+            .catch(setFetchingNationsError);
+
+        const e = api.common.getDictData('education');
+        sources.push(e.source);
+        e.promise
+            .then(e => {
+                setEducations(e);
+                setIsEducationsLoading(false);
+                return setEducationId(e[0].id)
+            })
+            .catch(setFetchingEducationsError);
+
+        const p = api.common.getDictData('perilRela');
+        sources.push(p.source);
+        p.promise
+            .then(p => {
+                setPerilRelas(p);
+                setIsPerilRelasLoading(false);
+                setPerilRelaId(p[0].id)
+            })
+            .catch(setFetchingPerilRelasError);
+
         // cancellation
         return () => sources.forEach(s => s.cancel())
     }, []);
@@ -286,8 +309,33 @@ export default function Profile() {
         return <Loading/>
     }
 
+    function del(img: ProfileUploader) {
+        setPhotos(photos.filter(e => e !== img))
+    }
+
+    function add(file: File) {
+        const img = new ProfileUploader(file);
+        const es = photos.concat(img);
+        setPhotos(es);
+        const { source, promise } = img.upload();
+        sources.push(source);
+        promise
+            .then(() => setPhotos([...es]))
+            .catch(e => {
+                if(!axios.isCancel(e)) {
+
+                    setPhotos([...photos]);
+                    Modal.show({
+                        title: '出错啦: ',
+                        message: e.message
+                    })
+                }
+            })
+    }
+
     function saveProfile() {
-        const {promise, source} = api.customer.submitProfile({
+        const bd = moment(birthDate).format('YYYY-MM-DD');
+        const rq = {
             nationId,
             realName,
             perilName,
@@ -296,12 +344,13 @@ export default function Profile() {
             nativePlace,
             educationId,
             sex,
-            birthDate,
+            birthDate: bd,
             skills,
-            photos
-        });
+            photos: photos.map(p => p.previewPath)
+        };
+        const {promise, source} = api.customer.submitProfile(rq);
         setModifiable(false);
-        promise.then(console.log).catch((e: Error) => Modal.show({
+        promise.then(() => Modal.show({title: '操作成功', message: '已修改'})).catch((e: Error) => Modal.show({
             title: '出错啦',
             message: e.message
         }));    
@@ -319,6 +368,7 @@ export default function Profile() {
     }
 
     return <Container>
+        <input type="file" hidden ref={uploaderRef} onChange={e => add(e.target.files[0])} />
         <Section title='基础资料' >
             <ModifiableRow modifiable={modifiable} label='姓名' >
                 <Text>{realName}</Text>
@@ -334,10 +384,12 @@ export default function Profile() {
                 </select>
             </ModifiableRow>
             <Separator/>
-            {/* <ModifiableRow modifiable={modifiable} label='出生日期' >
-                <Text>{birthDate}</Text>
-                <Input type="text" value={birthDate} />
-            </ModifiableRow> */}
+            <Row>
+                <RowHeader>出生日期</RowHeader>
+                {/*
+                // @ts-ignore WTF about the syntax */}
+                <DatePicker value={birthDate} locale='zh-CN' disabled={!modifiable} className='dp-rewrite' disableCalendar={!modifiable} clearIcon={null} />
+            </Row>
             <Separator/>
             <Selector 
                 modifiable={modifiable} error={fetchingNationsError} 
@@ -360,15 +412,24 @@ export default function Profile() {
             />
             <Separator/>
             <Skills skills={skills} onChange={skills => setSkills(skills)} modifiable={modifiable} />
-            {/* <ModifiableRow modifiable={modifiable} label='个人技能' >
-                <Text>{skills}</Text>
-                <Input type="text" value={skills} />
-            </ModifiableRow> */}
             <Separator/>
-            {/* <ModifiableRow modifiable={modifiable} label='资质证明' >
-                <Text>{photos}</Text>
-                <Input type="text" value={photos} />
-            </ModifiableRow> */}
+            <ModifiableRow modifiable={modifiable} label='资质证明' >
+                <PaddingWrapper>
+                    {photos.map(p => 
+                        <ElementWrapper key={p.previewPath} >
+                            <PreviewImage src={p.previewPath} />
+                        </ElementWrapper>
+                    )}
+                </PaddingWrapper>
+                <PaddingWrapper>
+                    {photos.map(img => 
+                        <ElementWrapper key={img.previewPath} >
+                            <RemovableImg url={img.previewPath} isUploading={img.state === 'uploading'} onDelete={e => del(img)} />
+                        </ElementWrapper> 
+                    )}
+                    <ElementWrapper><AddButton onClick={e => uploaderRef.current.click()} /></ElementWrapper> 
+                </PaddingWrapper>
+            </ModifiableRow>
         </Section>
 
         <Section title='紧急联系人' >
